@@ -16,3 +16,17 @@ module "rg" {
     }
   }
 }
+module "adf" {
+  source  = "cloudnationhq/adf/azure"
+  version = "~> 0.1"
+
+  instance = {
+    name                = module.naming.data_factory.name_unique
+    location            = module.rg.groups.demo.location
+    resource_group_name = module.rg.groups.demo.name
+
+    identity = {
+      type = "SystemAssigned"
+    }
+  }
+}
