@@ -89,19 +89,20 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  use_managed_identity     = each.value.use_managed_identity
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
-  connection_string        = each.value.connection_string
-  sas_uri                  = each.value.sas_uri
-  service_endpoint         = each.value.service_endpoint
-  service_principal_id     = each.value.service_principal_id
-  service_principal_key    = each.value.service_principal_key
-  storage_kind             = each.value.storage_kind
-  tenant_id                = each.value.tenant_id
+
+  use_managed_identity  = each.value.use_managed_identity
+  connection_string     = each.value.connection_string
+  sas_uri               = each.value.sas_uri
+  service_endpoint      = each.value.service_endpoint
+  service_principal_id  = each.value.service_principal_id
+  service_principal_key = each.value.service_principal_key
+  storage_kind          = each.value.storage_kind
+  tenant_id             = each.value.tenant_id
 
   dynamic "sas_token_linked_key_vault_key" {
     for_each = lookup(each.value, "sas_token_linked_key_vault_key", null) != null ? [each.value.sas_token_linked_key_vault_key] : []
@@ -117,17 +118,18 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
-  use_managed_identity     = each.value.use_managed_identity
-  service_principal_id     = each.value.service_principal_id
-  service_principal_key    = each.value.service_principal_key
-  tenant_id                = each.value.tenant_id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
-  credential_name          = each.value.credential_name
+
+  connection_string     = each.value.connection_string
+  use_managed_identity  = each.value.use_managed_identity
+  service_principal_id  = each.value.service_principal_id
+  service_principal_key = each.value.service_principal_key
+  tenant_id             = each.value.tenant_id
+  credential_name       = each.value.credential_name
 
   dynamic "key_vault_connection_string" {
     for_each = lookup(each.value, "key_vault_connection_string", null) != null ? [each.value.key_vault_connection_string] : []
@@ -146,19 +148,18 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "this" {
   }
 }
 
-######## IIII AMMMM HEEEERRREEEEEE ########################################
-
 resource "azurerm_data_factory_linked_service_azure_table_storage" "this" {
   for_each = var.instance.linked_services.azure_table_storage
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  connection_string = each.value.connection_string
 }
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "this" {
@@ -166,15 +167,16 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  adb_domain               = each.value.adb_domain
-  access_token             = each.value.access_token
-  msi_workspace_id         = each.value.msi_workspace_id
-  existing_cluster_id      = each.value.existing_cluster_id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  adb_domain          = each.value.adb_domain
+  access_token        = each.value.access_token
+  msi_workspace_id    = each.value.msi_workspace_id
+  existing_cluster_id = each.value.existing_cluster_id
 
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
@@ -217,15 +219,16 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "this" {
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  host                     = each.value.host
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
-  password                 = each.value.password
-  user_id                  = each.value.user_id
   additional_properties    = each.value.additional_properties
-  connection_string        = each.value.connection_string
-  file_share               = each.value.file_share
+
+  host              = each.value.host
+  password          = each.value.password
+  user_id           = each.value.user_id
+  connection_string = each.value.connection_string
+  file_share        = each.value.file_share
 
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
@@ -241,13 +244,14 @@ resource "azurerm_data_factory_linked_service_azure_function" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  url                      = each.value.url
-  key                      = each.value.key
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  url = each.value.url
+  key = each.value.key
 
   dynamic "key_vault_key" {
     for_each = lookup(each.value, "key_vault_key", null) != null ? [each.value.key_vault_key] : []
@@ -263,13 +267,14 @@ resource "azurerm_data_factory_linked_service_azure_search" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  url                      = each.value.url
-  search_service_key       = each.value.search_service_key
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  url                = each.value.url
+  search_service_key = each.value.search_service_key
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb" "this" {
@@ -277,14 +282,16 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  account_endpoint         = each.value.account_endpoint
-  account_key              = each.value.account_key
-  database                 = each.value.database
-  connection_string        = each.value.connection_string
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
+  additional_properties    = each.value.additional_properties
+
+  account_endpoint  = each.value.account_endpoint
+  account_key       = each.value.account_key
+  database          = each.value.database
+  connection_string = each.value.connection_string
 }
 
 resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "this" {
@@ -292,12 +299,15 @@ resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
-  database                 = each.value.database
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
+  additional_properties    = each.value.additional_properties
+
+  connection_string              = each.value.connection_string
+  database                       = each.value.database
+  server_version_is_32_or_higher = each.value.server_version_is_32_or_higher
 }
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "this" {
@@ -305,16 +315,18 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  url                      = each.value.url
-  use_managed_identity     = each.value.use_managed_identity
-  storage_account_key      = each.value.storage_account_key
-  service_principal_id     = each.value.service_principal_id
-  service_principal_key    = each.value.service_principal_key
-  tenant_id                = each.value.tenant_id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
+  additional_properties    = each.value.additional_properties
+
+  url                   = each.value.url
+  use_managed_identity  = each.value.use_managed_identity
+  storage_account_key   = each.value.storage_account_key
+  service_principal_id  = each.value.service_principal_id
+  service_principal_key = each.value.service_principal_key
+  tenant                = each.value.tenant
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "this" {
@@ -327,6 +339,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "this" {
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
+  additional_properties    = each.value.additional_properties
 }
 
 resource "azurerm_data_factory_linked_service_kusto" "this" {
@@ -334,16 +347,18 @@ resource "azurerm_data_factory_linked_service_kusto" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  kusto_endpoint           = each.value.kusto_endpoint
-  kusto_database_name      = each.value.kusto_database_name
-  use_managed_identity     = each.value.use_managed_identity
-  service_principal_id     = each.value.service_principal_id
-  service_principal_key    = each.value.service_principal_key
-  tenant_id                = each.value.tenant_id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
+  additional_properties    = each.value.additional_properties
+
+  kusto_endpoint        = each.value.kusto_endpoint
+  kusto_database_name   = each.value.kusto_database_name
+  use_managed_identity  = each.value.use_managed_identity
+  service_principal_id  = each.value.service_principal_id
+  service_principal_key = each.value.service_principal_key
+  tenant                = each.value.tenant
 }
 
 resource "azurerm_data_factory_linked_service_mysql" "this" {
@@ -351,20 +366,13 @@ resource "azurerm_data_factory_linked_service_mysql" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
 
-  dynamic "key_vault_password" {
-    for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
-    content {
-      linked_service_name = key_vault_password.value.linked_service_name
-      secret_name         = key_vault_password.value.secret_name
-    }
-  }
+  connection_string = each.value.connection_string
 }
 
 resource "azurerm_data_factory_linked_service_odata" "this" {
@@ -372,12 +380,13 @@ resource "azurerm_data_factory_linked_service_odata" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  url                      = each.value.url
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  url = each.value.url
 
   dynamic "basic_authentication" {
     for_each = lookup(each.value, "basic_authentication", null) != null ? [each.value.basic_authentication] : []
@@ -393,12 +402,13 @@ resource "azurerm_data_factory_linked_service_odbc" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  connection_string = each.value.connection_string
 
   dynamic "basic_authentication" {
     for_each = lookup(each.value, "basic_authentication", null) != null ? [each.value.basic_authentication] : []
@@ -414,20 +424,13 @@ resource "azurerm_data_factory_linked_service_postgresql" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
 
-  dynamic "key_vault_password" {
-    for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
-    content {
-      linked_service_name = key_vault_password.value.linked_service_name
-      secret_name         = key_vault_password.value.secret_name
-    }
-  }
+  connection_string = each.value.connection_string
 }
 
 resource "azurerm_data_factory_linked_service_sftp" "this" {
@@ -435,6 +438,12 @@ resource "azurerm_data_factory_linked_service_sftp" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
+  description              = each.value.description
+  integration_runtime_name = each.value.integration_runtime_name
+  annotations              = each.value.annotations
+  parameters               = each.value.parameters
+  additional_properties    = each.value.additional_properties
+
   authentication_type      = each.value.authentication_type
   host                     = each.value.host
   port                     = each.value.port
@@ -444,10 +453,30 @@ resource "azurerm_data_factory_linked_service_sftp" "this" {
   private_key_passphrase   = each.value.private_key_passphrase
   skip_host_key_validation = each.value.skip_host_key_validation
   host_key_fingerprint     = each.value.host_key_fingerprint
-  description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
-  annotations              = each.value.annotations
-  parameters               = each.value.parameters
+
+  dynamic "key_vault_password" {
+    for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
+    content {
+      linked_service_name = key_vault_password.value.linked_service_name
+      secret_name         = key_vault_password.value.secret_name
+    }
+  }
+
+  dynamic "key_vault_private_key_content_base64" {
+    for_each = lookup(each.value, "key_vault_private_key_content_base64", null) != null ? [each.value.key_vault_private_key_content_base64] : []
+    content {
+      linked_service_name = key_vault_private_key_content_base64.value.linked_service_name
+      secret_name         = key_vault_private_key_content_base64.value.secret_name
+    }
+  }
+
+  dynamic "key_vault_private_key_passphrase" {
+    for_each = lookup(each.value, "key_vault_private_key_passphrase", null) != null ? [each.value.key_vault_private_key_passphrase] : []
+    content {
+      linked_service_name = key_vault_private_key_passphrase.value.linked_service_name
+      secret_name         = key_vault_private_key_passphrase.value.secret_name
+    }
+  }
 }
 
 resource "azurerm_data_factory_linked_service_snowflake" "this" {
@@ -455,12 +484,13 @@ resource "azurerm_data_factory_linked_service_snowflake" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  connection_string = each.value.connection_string
 
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
@@ -476,12 +506,24 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  connection_string     = each.value.connection_string
+  service_principal_id  = each.value.service_principal_id
+  service_principal_key = each.value.service_principal_key
+  tenant                = each.value.tenant
+
+  dynamic "key_vault_connection_string" {
+    for_each = lookup(each.value, "key_vault_connection_string", null) != null ? [each.value.key_vault_connection_string] : []
+    content {
+      linked_service_name = key_vault_connection_string.value.linked_service_name
+      secret_name         = key_vault_connection_string.value.secret_name
+    }
+  }
 
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
@@ -497,12 +539,22 @@ resource "azurerm_data_factory_linked_service_sql_server" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  connection_string     = each.value.connection_string
+  user_name             = each.value.user_name
+
+  dynamic "key_vault_connection_string" {
+    for_each = lookup(each.value, "key_vault_connection_string", null) != null ? [each.value.key_vault_connection_string] : []
+    content {
+      linked_service_name = key_vault_connection_string.value.linked_service_name
+      secret_name         = key_vault_connection_string.value.secret_name
+    }
+  }
 
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
@@ -518,12 +570,13 @@ resource "azurerm_data_factory_linked_service_synapse" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  connection_string        = each.value.connection_string
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  connection_string = each.value.connection_string
 
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
@@ -539,15 +592,16 @@ resource "azurerm_data_factory_linked_service_web" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  url                      = each.value.url
-  authentication_type      = each.value.authentication_type
-  username                 = each.value.username
-  password                 = each.value.password
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  url                      = each.value.url
+  authentication_type      = each.value.authentication_type
+  username                 = each.value.username
+  password                 = each.value.password
 }
 
 resource "azurerm_data_factory_linked_custom_service" "this" {
@@ -555,12 +609,15 @@ resource "azurerm_data_factory_linked_custom_service" "this" {
 
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
-  type                     = each.value.type
-  type_properties_json     = jsonencode(each.value.type_properties)
   description              = each.value.description
+  integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
+
+  type                  = each.value.type
+  type_properties_json  = jsonencode(each.value.type_properties)
+
 
   dynamic "integration_runtime" {
     for_each = lookup(each.value, "integration_runtime", null) != null ? [each.value.integration_runtime] : []
@@ -575,15 +632,15 @@ resource "azurerm_data_factory_linked_custom_service" "this" {
 resource "azurerm_data_factory_dataset_azure_blob" "this" {
   for_each = var.instance.datasets.azure_blob
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  path                = each.value.path
-  filename            = each.value.filename
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  path                  = each.value.path
+  filename              = each.value.filename
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "schema_column" {
@@ -599,14 +656,14 @@ resource "azurerm_data_factory_dataset_azure_blob" "this" {
 resource "azurerm_data_factory_dataset_azure_sql_table" "this" {
   for_each = var.instance.datasets.azure_sql_table
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  table_name          = each.value.table_name
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  table_name            = each.value.table_name
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "schema_column" {
@@ -622,13 +679,13 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "this" {
 resource "azurerm_data_factory_dataset_binary" "this" {
   for_each = var.instance.datasets.binary
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  folder              = each.value.folder
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  folder                = each.value.folder
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
   additional_properties = each.value.additional_properties
 
   dynamic "azure_blob_storage_location" {
@@ -668,36 +725,36 @@ resource "azurerm_data_factory_dataset_binary" "this" {
 resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "this" {
   for_each = var.instance.datasets.cosmosdb_sqlapi
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  collection_name     = each.value.collection_name
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  collection_name       = each.value.collection_name
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 }
 
 resource "azurerm_data_factory_dataset_delimited_text" "this" {
   for_each = var.instance.datasets.delimited_text
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  column_delimiter    = each.value.column_delimiter
-  row_delimiter       = each.value.row_delimiter
-  encoding            = each.value.encoding
-  quote_character     = each.value.quote_character
-  escape_character    = each.value.escape_character
-  first_row_as_header = each.value.first_row_as_header
-  null_value          = each.value.null_value
-  compression_codec   = each.value.compression_codec
-  compression_level   = each.value.compression_level
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  column_delimiter      = each.value.column_delimiter
+  row_delimiter         = each.value.row_delimiter
+  encoding              = each.value.encoding
+  quote_character       = each.value.quote_character
+  escape_character      = each.value.escape_character
+  first_row_as_header   = each.value.first_row_as_header
+  null_value            = each.value.null_value
+  compression_codec     = each.value.compression_codec
+  compression_level     = each.value.compression_level
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "azure_blob_storage_location" {
@@ -731,16 +788,16 @@ resource "azurerm_data_factory_dataset_delimited_text" "this" {
 resource "azurerm_data_factory_dataset_http" "this" {
   for_each = var.instance.datasets.http
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  relative_url        = each.value.relative_url
-  request_body        = each.value.request_body
-  request_method      = each.value.request_method
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  relative_url          = each.value.relative_url
+  request_body          = each.value.request_body
+  request_method        = each.value.request_method
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "schema_column" {
@@ -756,14 +813,14 @@ resource "azurerm_data_factory_dataset_http" "this" {
 resource "azurerm_data_factory_dataset_json" "this" {
   for_each = var.instance.datasets.json
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  encoding            = each.value.encoding
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  encoding              = each.value.encoding
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "azure_blob_storage_location" {
@@ -788,14 +845,14 @@ resource "azurerm_data_factory_dataset_json" "this" {
 resource "azurerm_data_factory_dataset_mysql" "this" {
   for_each = var.instance.datasets.mysql
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  table_name          = each.value.table_name
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  table_name            = each.value.table_name
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "schema_column" {
@@ -811,15 +868,15 @@ resource "azurerm_data_factory_dataset_mysql" "this" {
 resource "azurerm_data_factory_dataset_parquet" "this" {
   for_each = var.instance.datasets.parquet
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  compression_codec   = each.value.compression_codec
-  compression_level   = each.value.compression_level
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  compression_codec     = each.value.compression_codec
+  compression_level     = each.value.compression_level
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "azure_blob_storage_location" {
@@ -844,14 +901,14 @@ resource "azurerm_data_factory_dataset_parquet" "this" {
 resource "azurerm_data_factory_dataset_postgresql" "this" {
   for_each = var.instance.datasets.postgresql
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  table_name          = each.value.table_name
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  table_name            = each.value.table_name
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "schema_column" {
@@ -867,29 +924,29 @@ resource "azurerm_data_factory_dataset_postgresql" "this" {
 resource "azurerm_data_factory_dataset_snowflake" "this" {
   for_each = var.instance.datasets.snowflake
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  schema_name         = each.value.schema_name
-  table_name          = each.value.table_name
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  schema_name           = each.value.schema_name
+  table_name            = each.value.table_name
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 }
 
 resource "azurerm_data_factory_dataset_sql_server_table" "this" {
   for_each = var.instance.datasets.sql_server_table
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  linked_service_name = each.value.linked_service_name
-  table_name          = each.value.table_name
-  description         = each.value.description
-  annotations         = each.value.annotations
-  parameters          = each.value.parameters
-  folder              = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  linked_service_name   = each.value.linked_service_name
+  table_name            = each.value.table_name
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "schema_column" {
@@ -905,14 +962,14 @@ resource "azurerm_data_factory_dataset_sql_server_table" "this" {
 resource "azurerm_data_factory_custom_dataset" "this" {
   for_each = var.instance.datasets.custom
 
-  name                 = each.value.name
-  data_factory_id      = azurerm_data_factory.this.id
-  type                 = each.value.type
-  type_properties_json = jsonencode(each.value.type_properties)
-  description          = each.value.description
-  annotations          = each.value.annotations
-  parameters           = each.value.parameters
-  folder               = each.value.folder
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  type                  = each.value.type
+  type_properties_json  = jsonencode(each.value.type_properties)
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  folder                = each.value.folder
   additional_properties = each.value.additional_properties
 
   dynamic "linked_service" {
@@ -1364,7 +1421,7 @@ resource "azurerm_data_factory_managed_private_endpoint" "this" {
 resource "azurerm_data_factory_customer_managed_key" "this" {
   for_each = lookup(var.instance, "customer_managed_key", null) != null ? { "cmk" : var.instance.customer_managed_key } : {}
 
-  data_factory_id              = azurerm_data_factory.this.id
-  key_vault_key_id             = each.value.key_vault_key_id
-  user_assigned_identity_id    = each.value.user_assigned_identity_id
+  data_factory_id           = azurerm_data_factory.this.id
+  key_vault_key_id          = each.value.key_vault_key_id
+  user_assigned_identity_id = each.value.user_assigned_identity_id
 }

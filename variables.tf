@@ -216,6 +216,7 @@ variable "instance" {
         integration_runtime_name = optional(string)
         annotations              = optional(list(string))
         parameters               = optional(map(string))
+        additional_properties    = optional(map(string))
       })), {})
 
       cosmosdb_mongoapi = optional(map(object({
@@ -226,6 +227,7 @@ variable "instance" {
         integration_runtime_name = optional(string)
         annotations              = optional(list(string))
         parameters               = optional(map(string))
+        additional_properties    = optional(map(string))
       })), {})
 
       data_lake_storage_gen2 = optional(map(object({
@@ -240,6 +242,7 @@ variable "instance" {
         integration_runtime_name = optional(string)
         annotations              = optional(list(string))
         parameters               = optional(map(string))
+        additional_properties    = optional(map(string))
       })), {})
 
       key_vault = optional(map(object({
@@ -249,6 +252,7 @@ variable "instance" {
         integration_runtime_name = optional(string)
         annotations              = optional(list(string))
         parameters               = optional(map(string))
+        additional_properties    = optional(map(string))
       })), {})
 
       kusto = optional(map(object({
@@ -263,6 +267,7 @@ variable "instance" {
         integration_runtime_name = optional(string)
         annotations              = optional(list(string))
         parameters               = optional(map(string))
+        additional_properties    = optional(map(string))
       })), {})
 
       mysql = optional(map(object({
