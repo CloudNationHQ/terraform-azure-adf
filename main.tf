@@ -610,7 +610,6 @@ resource "azurerm_data_factory_linked_custom_service" "this" {
   name                     = each.value.name
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
