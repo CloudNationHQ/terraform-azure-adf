@@ -545,8 +545,8 @@ resource "azurerm_data_factory_linked_service_sql_server" "this" {
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
 
-  connection_string     = each.value.connection_string
-  user_name             = each.value.user_name
+  connection_string = each.value.connection_string
+  user_name         = each.value.user_name
 
   dynamic "key_vault_connection_string" {
     for_each = lookup(each.value, "key_vault_connection_string", null) != null ? [each.value.key_vault_connection_string] : []
@@ -598,24 +598,24 @@ resource "azurerm_data_factory_linked_service_web" "this" {
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
 
-  url                      = each.value.url
-  authentication_type      = each.value.authentication_type
-  username                 = each.value.username
-  password                 = each.value.password
+  url                 = each.value.url
+  authentication_type = each.value.authentication_type
+  username            = each.value.username
+  password            = each.value.password
 }
 
 resource "azurerm_data_factory_linked_custom_service" "this" {
   for_each = var.instance.linked_services.custom
 
-  name                     = each.value.name
-  data_factory_id          = azurerm_data_factory.this.id
-  description              = each.value.description
-  annotations              = each.value.annotations
-  parameters               = each.value.parameters
-  additional_properties    = each.value.additional_properties
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  description           = each.value.description
+  annotations           = each.value.annotations
+  parameters            = each.value.parameters
+  additional_properties = each.value.additional_properties
 
-  type                  = each.value.type
-  type_properties_json  = jsonencode(each.value.type_properties)
+  type                 = each.value.type
+  type_properties_json = jsonencode(each.value.type_properties)
 
 
   dynamic "integration_runtime" {
@@ -634,13 +634,16 @@ resource "azurerm_data_factory_dataset_azure_blob" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  path                  = each.value.path
-  filename              = each.value.filename
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  path                     = each.value.path
+  filename                 = each.value.filename
+  dynamic_path_enabled     = each.value.dynamic_path_enabled
+  dynamic_filename_enabled = each.value.dynamic_filename_enabled
 
   dynamic "schema_column" {
     for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
@@ -657,13 +660,14 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "this" {
 
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
-  table_name            = each.value.table_name
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  linked_service_id = each.value.linked_service_id
+  table             = each.value.table
 
   dynamic "schema_column" {
     for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
@@ -687,36 +691,44 @@ resource "azurerm_data_factory_dataset_binary" "this" {
   parameters            = each.value.parameters
   additional_properties = each.value.additional_properties
 
-  dynamic "azure_blob_storage_location" {
-    for_each = lookup(each.value, "azure_blob_storage_location", null) != null ? [each.value.azure_blob_storage_location] : []
-    content {
-      container = azure_blob_storage_location.value.container
-      path      = azure_blob_storage_location.value.path
-      filename  = azure_blob_storage_location.value.filename
-    }
-  }
-
   dynamic "http_server_location" {
     for_each = lookup(each.value, "http_server_location", null) != null ? [each.value.http_server_location] : []
     content {
-      relative_url = http_server_location.value.relative_url
-      path         = http_server_location.value.path
-      filename     = http_server_location.value.filename
+      relative_url             = http_server_location.value.relative_url
+      path                     = http_server_location.value.path
+      filename                 = http_server_location.value.filename
+      dynamic_path_enabled     = http_server_location.value.dynamic_path_enabled
+      dynamic_filename_enabled = http_server_location.value.dynamic_filename_enabled
+    }
+  }
+
+  dynamic "azure_blob_storage_location" {
+    for_each = lookup(each.value, "azure_blob_storage_location", null) != null ? [each.value.azure_blob_storage_location] : []
+    content {
+      container                 = azure_blob_storage_location.value.container
+      path                      = azure_blob_storage_location.value.path
+      filename                  = azure_blob_storage_location.value.filename
+      dynamic_container_enabled = azure_blob_storage_location.value.dynamic_container_enabled
+      dynamic_path_enabled      = azure_blob_storage_location.value.dynamic_path_enabled
+      dynamic_filename_enabled  = azure_blob_storage_location.value.dynamic_filename_enabled
     }
   }
 
   dynamic "sftp_server_location" {
     for_each = lookup(each.value, "sftp_server_location", null) != null ? [each.value.sftp_server_location] : []
     content {
-      path     = sftp_server_location.value.path
-      filename = sftp_server_location.value.filename
+      path                     = sftp_server_location.value.path
+      filename                 = sftp_server_location.value.filename
+      dynamic_path_enabled     = sftp_server_location.value.dynamic_path_enabled
+      dynamic_filename_enabled = sftp_server_location.value.dynamic_filename_enabled
     }
   }
 
   dynamic "compression" {
     for_each = lookup(each.value, "compression", null) != null ? [each.value.compression] : []
     content {
-      type = compression.value.type
+      type  = compression.value.type
+      level = compression.value.level
     }
   }
 }
@@ -727,12 +739,22 @@ resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  collection_name       = each.value.collection_name
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  collection_name = each.value.collection_name
+
+  dynamic "schema_column" {
+    for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
+    content {
+      name        = schema_column.value.name
+      type        = schema_column.value.type
+      description = schema_column.value.description
+    }
+  }
 }
 
 resource "azurerm_data_factory_dataset_delimited_text" "this" {
@@ -741,45 +763,63 @@ resource "azurerm_data_factory_dataset_delimited_text" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  column_delimiter      = each.value.column_delimiter
-  row_delimiter         = each.value.row_delimiter
-  encoding              = each.value.encoding
-  quote_character       = each.value.quote_character
-  escape_character      = each.value.escape_character
-  first_row_as_header   = each.value.first_row_as_header
-  null_value            = each.value.null_value
-  compression_codec     = each.value.compression_codec
-  compression_level     = each.value.compression_level
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  column_delimiter    = each.value.column_delimiter
+  row_delimiter       = each.value.row_delimiter
+  encoding            = each.value.encoding
+  quote_character     = each.value.quote_character
+  escape_character    = each.value.escape_character
+  first_row_as_header = each.value.first_row_as_header
+  null_value          = each.value.null_value
+  compression_codec   = each.value.compression_codec
+  compression_level   = each.value.compression_level
 
   dynamic "azure_blob_storage_location" {
     for_each = lookup(each.value, "azure_blob_storage_location", null) != null ? [each.value.azure_blob_storage_location] : []
     content {
-      container = azure_blob_storage_location.value.container
-      path      = azure_blob_storage_location.value.path
-      filename  = azure_blob_storage_location.value.filename
+      container                 = azure_blob_storage_location.value.container
+      path                      = azure_blob_storage_location.value.path
+      filename                  = azure_blob_storage_location.value.filename
+      dynamic_container_enabled = azure_blob_storage_location.value.dynamic_container_enabled
+      dynamic_path_enabled      = azure_blob_storage_location.value.dynamic_path_enabled
+      dynamic_filename_enabled  = azure_blob_storage_location.value.dynamic_filename_enabled
     }
   }
 
   dynamic "http_server_location" {
     for_each = lookup(each.value, "http_server_location", null) != null ? [each.value.http_server_location] : []
     content {
-      relative_url = http_server_location.value.relative_url
-      path         = http_server_location.value.path
-      filename     = http_server_location.value.filename
+      relative_url             = http_server_location.value.relative_url
+      path                     = http_server_location.value.path
+      filename                 = http_server_location.value.filename
+      dynamic_path_enabled     = http_server_location.value.dynamic_path_enabled
+      dynamic_filename_enabled = http_server_location.value.dynamic_filename_enabled
     }
   }
 
   dynamic "azure_blob_fs_location" {
     for_each = lookup(each.value, "azure_blob_fs_location", null) != null ? [each.value.azure_blob_fs_location] : []
     content {
-      file_system = azure_blob_fs_location.value.file_system
-      path        = azure_blob_fs_location.value.path
-      filename    = azure_blob_fs_location.value.filename
+      file_system                 = azure_blob_fs_location.value.file_system
+      path                        = azure_blob_fs_location.value.path
+      filename                    = azure_blob_fs_location.value.filename
+      dynamic_file_system_enabled = azure_blob_fs_location.value.dynamic_file_system_enabled
+      dynamic_path_enabled        = azure_blob_fs_location.value.dynamic_path_enabled
+      dynamic_filename_enabled    = azure_blob_fs_location.value.dynamic_filename_enabled
+    }
+  }
+
+  dynamic "schema_column" {
+    for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
+    content {
+      name        = schema_column.value.name
+      type        = schema_column.value.type
+      description = schema_column.value.description
     }
   }
 }
@@ -790,14 +830,15 @@ resource "azurerm_data_factory_dataset_http" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  relative_url          = each.value.relative_url
-  request_body          = each.value.request_body
-  request_method        = each.value.request_method
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  relative_url   = each.value.relative_url
+  request_body   = each.value.request_body
+  request_method = each.value.request_method
 
   dynamic "schema_column" {
     for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
@@ -815,28 +856,43 @@ resource "azurerm_data_factory_dataset_json" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  encoding              = each.value.encoding
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  encoding = each.value.encoding
 
   dynamic "azure_blob_storage_location" {
     for_each = lookup(each.value, "azure_blob_storage_location", null) != null ? [each.value.azure_blob_storage_location] : []
     content {
-      container = azure_blob_storage_location.value.container
-      path      = azure_blob_storage_location.value.path
-      filename  = azure_blob_storage_location.value.filename
+      container                 = azure_blob_storage_location.value.container
+      path                      = azure_blob_storage_location.value.path
+      filename                  = azure_blob_storage_location.value.filename
+      dynamic_container_enabled = azure_blob_storage_location.value.dynamic_container_enabled
+      dynamic_path_enabled      = azure_blob_storage_location.value.dynamic_path_enabled
+      dynamic_filename_enabled  = azure_blob_storage_location.value.dynamic_filename_enabled
     }
   }
 
   dynamic "http_server_location" {
     for_each = lookup(each.value, "http_server_location", null) != null ? [each.value.http_server_location] : []
     content {
-      relative_url = http_server_location.value.relative_url
-      path         = http_server_location.value.path
-      filename     = http_server_location.value.filename
+      relative_url             = http_server_location.value.relative_url
+      path                     = http_server_location.value.path
+      filename                 = http_server_location.value.filename
+      dynamic_path_enabled     = http_server_location.value.dynamic_path_enabled
+      dynamic_filename_enabled = http_server_location.value.dynamic_filename_enabled
+    }
+  }
+
+  dynamic "schema_column" {
+    for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
+    content {
+      name        = schema_column.value.name
+      type        = schema_column.value.type
+      description = schema_column.value.description
     }
   }
 }
@@ -847,12 +903,13 @@ resource "azurerm_data_factory_dataset_mysql" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  table_name            = each.value.table_name
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  table_name = each.value.table_name
 
   dynamic "schema_column" {
     for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
@@ -870,29 +927,56 @@ resource "azurerm_data_factory_dataset_parquet" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  compression_codec     = each.value.compression_codec
-  compression_level     = each.value.compression_level
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  compression_codec = each.value.compression_codec
+  compression_level = each.value.compression_level
 
   dynamic "azure_blob_storage_location" {
     for_each = lookup(each.value, "azure_blob_storage_location", null) != null ? [each.value.azure_blob_storage_location] : []
     content {
-      container = azure_blob_storage_location.value.container
-      path      = azure_blob_storage_location.value.path
-      filename  = azure_blob_storage_location.value.filename
+      container                 = azure_blob_storage_location.value.container
+      path                      = azure_blob_storage_location.value.path
+      filename                  = azure_blob_storage_location.value.filename
+      dynamic_container_enabled = azure_blob_storage_location.value.dynamic_container_enabled
+      dynamic_path_enabled      = azure_blob_storage_location.value.dynamic_path_enabled
+      dynamic_filename_enabled  = azure_blob_storage_location.value.dynamic_filename_enabled
+    }
+  }
+
+  dynamic "azure_blob_fs_location" {
+    for_each = lookup(each.value, "azure_blob_fs_location", null) != null ? [each.value.azure_blob_fs_location] : []
+    content {
+      file_system                 = azure_blob_fs_location.value.file_system
+      path                        = azure_blob_fs_location.value.path
+      filename                    = azure_blob_fs_location.value.filename
+      dynamic_file_system_enabled = azure_blob_fs_location.value.dynamic_file_system_enabled
+      dynamic_path_enabled        = azure_blob_fs_location.value.dynamic_path_enabled
+      dynamic_filename_enabled    = azure_blob_fs_location.value.dynamic_filename_enabled
     }
   }
 
   dynamic "http_server_location" {
     for_each = lookup(each.value, "http_server_location", null) != null ? [each.value.http_server_location] : []
     content {
-      relative_url = http_server_location.value.relative_url
-      path         = http_server_location.value.path
-      filename     = http_server_location.value.filename
+      relative_url             = http_server_location.value.relative_url
+      path                     = http_server_location.value.path
+      filename                 = http_server_location.value.filename
+      dynamic_path_enabled     = http_server_location.value.dynamic_path_enabled
+      dynamic_filename_enabled = http_server_location.value.dynamic_filename_enabled
+    }
+  }
+
+  dynamic "schema_column" {
+    for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
+    content {
+      name        = schema_column.value.name
+      type        = schema_column.value.type
+      description = schema_column.value.description
     }
   }
 }
@@ -903,12 +987,13 @@ resource "azurerm_data_factory_dataset_postgresql" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  table_name            = each.value.table_name
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  table_name = each.value.table_name
 
   dynamic "schema_column" {
     for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
@@ -926,13 +1011,24 @@ resource "azurerm_data_factory_dataset_snowflake" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  schema_name           = each.value.schema_name
-  table_name            = each.value.table_name
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  schema_name = each.value.schema_name
+  table_name  = each.value.table_name
+
+  dynamic "schema_column" {
+    for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
+    content {
+      name      = schema_column.value.name
+      type      = schema_column.value.type
+      precision = schema_column.value.precision
+      scale     = schema_column.value.scale
+    }
+  }
 }
 
 resource "azurerm_data_factory_dataset_sql_server_table" "this" {
@@ -941,12 +1037,13 @@ resource "azurerm_data_factory_dataset_sql_server_table" "this" {
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
-  table_name            = each.value.table_name
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  table_name = each.value.table_name
 
   dynamic "schema_column" {
     for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
@@ -963,28 +1060,21 @@ resource "azurerm_data_factory_custom_dataset" "this" {
 
   name                  = each.value.name
   data_factory_id       = azurerm_data_factory.this.id
-  type                  = each.value.type
-  type_properties_json  = jsonencode(each.value.type_properties)
+  folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
   parameters            = each.value.parameters
-  folder                = each.value.folder
   additional_properties = each.value.additional_properties
+
+  type                 = each.value.type
+  type_properties_json = jsonencode(each.value.type_properties)
+  schema_json          = each.value.schema_json
 
   dynamic "linked_service" {
     for_each = lookup(each.value, "linked_service", null) != null ? [each.value.linked_service] : []
     content {
       name       = linked_service.value.name
       parameters = linked_service.value.parameters
-    }
-  }
-
-  dynamic "schema_column" {
-    for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
-    content {
-      name        = schema_column.value.name
-      type        = schema_column.value.type
-      description = schema_column.value.description
     }
   }
 }
@@ -1026,8 +1116,9 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "flowlet" {
         for_each = lookup(source.value, "flowlet", null) != null ? [source.value.flowlet] : []
         content {
-          name       = flowlet.value.name
-          parameters = flowlet.value.parameters
+          name               = flowlet.value.name
+          dataset_parameters = flowlet.value.dataset_parameters
+          parameters         = flowlet.value.parameters
         }
       }
 
@@ -1036,6 +1127,14 @@ resource "azurerm_data_factory_data_flow" "this" {
         content {
           name       = schema_linked_service.value.name
           parameters = schema_linked_service.value.parameters
+        }
+      }
+
+      dynamic "rejected_linked_service" {
+        for_each = lookup(source.value, "rejected_linked_service", null) != null ? [source.value.rejected_linked_service] : []
+        content {
+          name       = rejected_linked_service.value.name
+          parameters = rejected_linked_service.value.parameters
         }
       }
     }
@@ -1066,8 +1165,9 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "flowlet" {
         for_each = lookup(sink.value, "flowlet", null) != null ? [sink.value.flowlet] : []
         content {
-          name       = flowlet.value.name
-          parameters = flowlet.value.parameters
+          name               = flowlet.value.name
+          dataset_parameters = flowlet.value.dataset_parameters
+          parameters         = flowlet.value.parameters
         }
       }
 
@@ -1076,6 +1176,14 @@ resource "azurerm_data_factory_data_flow" "this" {
         content {
           name       = schema_linked_service.value.name
           parameters = schema_linked_service.value.parameters
+        }
+      }
+
+      dynamic "rejected_linked_service" {
+        for_each = lookup(sink.value, "rejected_linked_service", null) != null ? [sink.value.rejected_linked_service] : []
+        content {
+          name       = rejected_linked_service.value.name
+          parameters = rejected_linked_service.value.parameters
         }
       }
     }
@@ -1106,8 +1214,9 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "flowlet" {
         for_each = lookup(transformation.value, "flowlet", null) != null ? [transformation.value.flowlet] : []
         content {
-          name       = flowlet.value.name
-          parameters = flowlet.value.parameters
+          name               = flowlet.value.name
+          dataset_parameters = flowlet.value.dataset_parameters
+          parameters         = flowlet.value.parameters
         }
       }
     }
@@ -1146,6 +1255,31 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
           parameters = dataset.value.parameters
         }
       }
+
+      dynamic "flowlet" {
+        for_each = lookup(source.value, "flowlet", null) != null ? [source.value.flowlet] : []
+        content {
+          name               = flowlet.value.name
+          dataset_parameters = flowlet.value.dataset_parameters
+          parameters         = flowlet.value.parameters
+        }
+      }
+
+      dynamic "schema_linked_service" {
+        for_each = lookup(source.value, "schema_linked_service", null) != null ? [source.value.schema_linked_service] : []
+        content {
+          name       = schema_linked_service.value.name
+          parameters = schema_linked_service.value.parameters
+        }
+      }
+
+      dynamic "rejected_linked_service" {
+        for_each = lookup(source.value, "rejected_linked_service", null) != null ? [source.value.rejected_linked_service] : []
+        content {
+          name       = rejected_linked_service.value.name
+          parameters = rejected_linked_service.value.parameters
+        }
+      }
     }
   }
 
@@ -1170,6 +1304,31 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
           parameters = dataset.value.parameters
         }
       }
+
+      dynamic "flowlet" {
+        for_each = lookup(sink.value, "flowlet", null) != null ? [sink.value.flowlet] : []
+        content {
+          name               = flowlet.value.name
+          dataset_parameters = flowlet.value.dataset_parameters
+          parameters         = flowlet.value.parameters
+        }
+      }
+
+      dynamic "schema_linked_service" {
+        for_each = lookup(sink.value, "schema_linked_service", null) != null ? [sink.value.schema_linked_service] : []
+        content {
+          name       = schema_linked_service.value.name
+          parameters = schema_linked_service.value.parameters
+        }
+      }
+
+      dynamic "rejected_linked_service" {
+        for_each = lookup(sink.value, "rejected_linked_service", null) != null ? [sink.value.rejected_linked_service] : []
+        content {
+          name       = rejected_linked_service.value.name
+          parameters = rejected_linked_service.value.parameters
+        }
+      }
     }
   }
 
@@ -1192,6 +1351,15 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
         content {
           name       = dataset.value.name
           parameters = dataset.value.parameters
+        }
+      }
+
+      dynamic "flowlet" {
+        for_each = lookup(transformation.value, "flowlet", null) != null ? [transformation.value.flowlet] : []
+        content {
+          name               = flowlet.value.name
+          dataset_parameters = flowlet.value.dataset_parameters
+          parameters         = flowlet.value.parameters
         }
       }
     }
@@ -1221,10 +1389,110 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
   location                         = each.value.location
   node_size                        = each.value.node_size
   number_of_nodes                  = each.value.number_of_nodes
+  credential_name                  = each.value.credential_name
   edition                          = each.value.edition
   license_type                     = each.value.license_type
   max_parallel_executions_per_node = each.value.max_parallel_executions_per_node
   description                      = each.value.description
+
+  dynamic "catalog_info" {
+    for_each = lookup(each.value, "catalog_info", null) != null ? [each.value.catalog_info] : []
+    content {
+      server_endpoint        = catalog_info.value.server_endpoint
+      administrator_login    = catalog_info.value.administrator_login
+      administrator_password = catalog_info.value.administrator_password
+      pricing_tier           = catalog_info.value.pricing_tier
+      elastic_pool_name      = catalog_info.value.elastic_pool_name
+      dual_standby_pair_name = catalog_info.value.dual_standby_pair_name
+    }
+  }
+
+  dynamic "copy_compute_scale" {
+    for_each = lookup(each.value, "copy_compute_scale", null) != null ? [each.value.copy_compute_scale] : []
+    content {
+      data_integration_unit = copy_compute_scale.value.data_integration_unit
+      time_to_live          = copy_compute_scale.value.time_to_live
+    }
+  }
+
+  dynamic "custom_setup_script" {
+    for_each = lookup(each.value, "custom_setup_script", null) != null ? [each.value.custom_setup_script] : []
+    content {
+      blob_container_uri = custom_setup_script.value.blob_container_uri
+      sas_token          = custom_setup_script.value.sas_token
+    }
+  }
+
+  dynamic "express_custom_setup" {
+    for_each = lookup(each.value, "express_custom_setup", null) != null ? [each.value.express_custom_setup] : []
+    content {
+      environment        = express_custom_setup.value.environment
+      powershell_version = express_custom_setup.value.powershell_version
+
+      dynamic "command_key" {
+        for_each = lookup(express_custom_setup.value, "command_key", null) != null ? [express_custom_setup.value.command_key] : []
+        content {
+          target_name = command_key.value.target_name
+          user_name   = command_key.value.user_name
+          password    = command_key.value.password
+
+          dynamic "key_vault_password" {
+            for_each = lookup(command_key.value, "key_vault_password", null) != null ? [command_key.value.key_vault_password] : []
+            content {
+              linked_service_name = key_vault_password.value.linked_service_name
+              secret_name         = key_vault_password.value.secret_name
+              secret_version      = key_vault_password.value.secret_version
+              parameters          = key_vault_password.value.parameters
+            }
+          }
+        }
+      }
+
+      dynamic "component" {
+        for_each = lookup(express_custom_setup.value, "component", null) != null ? express_custom_setup.value.component : []
+        content {
+          name    = component.value.name
+          license = component.value.license
+
+          dynamic "key_vault_license" {
+            for_each = lookup(command_key.value, "key_vault_license", null) != null ? [command_key.value.key_vault_license] : []
+            content {
+              linked_service_name = key_vault_license.value.linked_service_name
+              secret_name         = key_vault_license.value.secret_name
+              secret_version      = key_vault_license.value.secret_version
+              parameters          = key_vault_license.value.parameters
+            }
+          }
+        }
+      }
+    }
+  }
+
+  dynamic "package_store" {
+    for_each = lookup(each.value, "package_store", null) != null ? [each.value.package_store] : []
+    content {
+      name                = package_store.value.name
+      linked_service_name = package_store.value.linked_service_name
+    }
+  }
+
+  dynamic "proxy" {
+    for_each = lookup(each.value, "proxy", null) != null ? [each.value.proxy] : []
+    content {
+      self_hosted_integration_runtime_name = proxy.value.self_hosted_integration_runtime_name
+      staging_storage_linked_service_name  = proxy.value.staging_storage_linked_service_name
+      path                                 = proxy.value.path
+    }
+  }
+
+  dynamic "pipeline_external_compute_scale" {
+    for_each = lookup(each.value, "pipeline_external_compute_scale", null) != null ? [each.value.pipeline_external_compute_scale] : []
+    content {
+      number_of_external_nodes = pipeline_external_compute_scale.value.number_of_external_nodes
+      number_of_pipeline_nodes = pipeline_external_compute_scale.value.number_of_pipeline_nodes
+      time_to_live             = pipeline_external_compute_scale.value.time_to_live
+    }
+  }
 
   dynamic "vnet_integration" {
     for_each = lookup(each.value, "vnet_integration", null) != null ? [each.value.vnet_integration] : []
@@ -1235,40 +1503,15 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
       subnet_id   = vnet_integration.value.subnet_id
     }
   }
-
-  dynamic "catalog_info" {
-    for_each = lookup(each.value, "catalog_info", null) != null ? [each.value.catalog_info] : []
-    content {
-      server_endpoint        = catalog_info.value.server_endpoint
-      administrator_login    = catalog_info.value.administrator_login
-      administrator_password = catalog_info.value.administrator_password
-      pricing_tier           = catalog_info.value.pricing_tier
-    }
-  }
-
-  dynamic "express_custom_setup" {
-    for_each = lookup(each.value, "express_custom_setup", null) != null ? [each.value.express_custom_setup] : []
-    content {
-      command = express_custom_setup.value.command
-    }
-  }
-
-  dynamic "proxy" {
-    for_each = lookup(each.value, "proxy", null) != null ? [each.value.proxy] : []
-    content {
-      path                                = proxy.value.path
-      staging_storage_linked_service_name = proxy.value.staging_storage_linked_service_name
-    }
-  }
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "this" {
   for_each = var.instance.integration_runtimes.self_hosted
 
-  name                                       = each.value.name
-  data_factory_id                            = azurerm_data_factory.this.id
-  description                                = each.value.description
-  self_contained_integration_runtime_enabled = each.value.self_contained_integration_runtime_enabled
+  name                                         = each.value.name
+  data_factory_id                              = azurerm_data_factory.this.id
+  description                                  = each.value.description
+  self_contained_interactive_authoring_enabled = each.value.self_contained_interactive_authoring_enabled
 
   dynamic "rbac_authorization" {
     for_each = lookup(each.value, "rbac_authorization_config", null) != null ? [each.value.rbac_authorization_config] : []
@@ -1282,14 +1525,16 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "this" {
 resource "azurerm_data_factory_pipeline" "this" {
   for_each = var.instance.pipelines
 
-  name            = each.value.name
-  data_factory_id = azurerm_data_factory.this.id
-  description     = each.value.description
-  annotations     = each.value.annotations
-  activities_json = jsonencode(each.value.activities)
-  parameters      = each.value.parameters
-  variables       = each.value.variables
-  folder          = each.value.folder
+  name                           = each.value.name
+  data_factory_id                = azurerm_data_factory.this.id
+  description                    = each.value.description
+  annotations                    = each.value.annotations
+  concurrency                    = each.value.concurrency
+  moniter_metrics_after_duration = each.value.moniter_metrics_after_duration
+  activities_json                = jsonencode(each.value.activities)
+  parameters                     = each.value.parameters
+  variables                      = each.value.variables
+  folder                         = each.value.folder
 }
 
 # Triggers
@@ -1306,6 +1551,7 @@ resource "azurerm_data_factory_trigger_blob_event" "this" {
   description           = each.value.description
   annotations           = each.value.annotations
   activated             = each.value.activated
+  additional_properties = each.value.additional_properties
 
   dynamic "pipeline" {
     for_each = each.value.pipelines != null ? each.value.pipelines : []
@@ -1319,16 +1565,18 @@ resource "azurerm_data_factory_trigger_blob_event" "this" {
 resource "azurerm_data_factory_trigger_schedule" "this" {
   for_each = var.instance.triggers.schedule
 
-  name            = each.value.name
-  data_factory_id = azurerm_data_factory.this.id
-  frequency       = each.value.frequency
-  interval        = each.value.interval
-  start_time      = each.value.start_time
-  end_time        = each.value.end_time
-  time_zone       = each.value.time_zone
-  description     = each.value.description
-  annotations     = each.value.annotations
-  activated       = each.value.activated
+  name                = each.value.name
+  data_factory_id     = azurerm_data_factory.this.id
+  frequency           = each.value.frequency
+  interval            = each.value.interval
+  start_time          = each.value.start_time
+  end_time            = each.value.end_time
+  time_zone           = each.value.time_zone
+  description         = each.value.description
+  annotations         = each.value.annotations
+  activated           = each.value.activated
+  pipeline_name       = each.value.pipeline_name
+  pipeline_parameters = each.value.pipeline_parameters
 
   dynamic "pipeline" {
     for_each = each.value.pipelines != null ? each.value.pipelines : []
@@ -1341,10 +1589,18 @@ resource "azurerm_data_factory_trigger_schedule" "this" {
   dynamic "schedule" {
     for_each = lookup(each.value, "schedule", null) != null ? [each.value.schedule] : []
     content {
-      minutes   = schedule.value.minutes
-      hours     = schedule.value.hours
-      weekdays  = schedule.value.weekdays
-      monthdays = schedule.value.monthdays
+      minutes       = schedule.value.minutes
+      hours         = schedule.value.hours
+      days_of_week  = schedule.value.days_of_week
+      days_of_month = schedule.value.days_of_month
+
+      dynamic "monthly" {
+        for_each = lookup(schedule.value, "monthly", null) != null ? [schedule.value.monthly] : []
+        content {
+          weekday = monthly.value.weekday
+          week    = monthly.value.week
+        }
+      }
     }
   }
 }
@@ -1360,11 +1616,10 @@ resource "azurerm_data_factory_trigger_tumbling_window" "this" {
   end_time              = each.value.end_time
   delay                 = each.value.delay
   max_concurrency       = each.value.max_concurrency
-  retry_policy_count    = each.value.retry_policy_count
-  retry_policy_interval = each.value.retry_policy_interval
   description           = each.value.description
   annotations           = each.value.annotations
   activated             = each.value.activated
+  additional_properties = each.value.additional_properties
 
   dynamic "pipeline" {
     for_each = each.value.pipelines != null ? each.value.pipelines : []
@@ -1374,11 +1629,20 @@ resource "azurerm_data_factory_trigger_tumbling_window" "this" {
     }
   }
 
-  dynamic "trigger_dependency" {
-    for_each = each.value.trigger_dependencies
+  dynamic "retry" {
+    for_each = lookup(each.value, "retry", null) != null ? [each.value.retry] : []
     content {
-      trigger_name      = trigger_dependency.value.trigger_name
-      reference_trigger = trigger_dependency.value.reference_trigger
+      count    = retry.value.count
+      interval = retry.value.interval
+    }
+  }
+
+  dynamic "trigger_dependency" {
+    for_each = each.value.trigger_dependencies != null ? each.value.trigger_dependencies : []
+    content {
+      offset       = trigger_dependency.value.offset
+      size         = trigger_dependency.value.size
+      trigger_name = trigger_dependency.value.trigger_name
     }
   }
 }
@@ -1386,15 +1650,16 @@ resource "azurerm_data_factory_trigger_tumbling_window" "this" {
 resource "azurerm_data_factory_trigger_custom_event" "this" {
   for_each = var.instance.triggers.custom_event
 
-  name                = each.value.name
-  data_factory_id     = azurerm_data_factory.this.id
-  eventgrid_topic_id  = each.value.eventgrid_topic_id
-  events              = each.value.events
-  subject_begins_with = each.value.subject_begins_with
-  subject_ends_with   = each.value.subject_ends_with
-  description         = each.value.description
-  annotations         = each.value.annotations
-  activated           = each.value.activated
+  name                  = each.value.name
+  data_factory_id       = azurerm_data_factory.this.id
+  eventgrid_topic_id    = each.value.eventgrid_topic_id
+  events                = each.value.events
+  subject_begins_with   = each.value.subject_begins_with
+  subject_ends_with     = each.value.subject_ends_with
+  description           = each.value.description
+  annotations           = each.value.annotations
+  activated             = each.value.activated
+  additional_properties = each.value.additional_properties
 
   dynamic "pipeline" {
     for_each = each.value.pipelines != null ? each.value.pipelines : []
@@ -1421,6 +1686,6 @@ resource "azurerm_data_factory_customer_managed_key" "this" {
   for_each = lookup(var.instance, "customer_managed_key", null) != null ? { "cmk" : var.instance.customer_managed_key } : {}
 
   data_factory_id           = azurerm_data_factory.this.id
-  key_vault_key_id          = each.value.key_vault_key_id
+  customer_managed_key_id   = each.value.customer_managed_key_id
   user_assigned_identity_id = each.value.user_assigned_identity_id
 }
