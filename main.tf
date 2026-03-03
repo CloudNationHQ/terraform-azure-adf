@@ -510,7 +510,6 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "this" {
   integration_runtime_name = each.value.integration_runtime_name
   annotations              = each.value.annotations
   parameters               = each.value.parameters
-  additional_properties    = each.value.additional_properties
 
   connection_string     = each.value.connection_string
   service_principal_id  = each.value.service_principal_id
@@ -1455,7 +1454,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
           license = component.value.license
 
           dynamic "key_vault_license" {
-            for_each = lookup(command_key.value, "key_vault_license", null) != null ? [command_key.value.key_vault_license] : []
+            for_each = lookup(component.value, "key_vault_license", null) != null ? [component.value.key_vault_license] : []
             content {
               linked_service_name = key_vault_license.value.linked_service_name
               secret_name         = key_vault_license.value.secret_name

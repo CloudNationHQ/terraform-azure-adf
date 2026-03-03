@@ -36,7 +36,7 @@ output "linked_services" {
     sql_server             = azurerm_data_factory_linked_service_sql_server.this
     synapse                = azurerm_data_factory_linked_service_synapse.this
     web                    = azurerm_data_factory_linked_service_web.this
-    custom                 = azurerm_data_factory_linked_service_custom.this
+    custom                 = azurerm_data_factory_linked_custom_service.this
   }
 }
 
