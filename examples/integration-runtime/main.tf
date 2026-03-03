@@ -19,11 +19,11 @@ module "rg" {
 
 module "vnet" {
   source  = "cloudnationhq/vnet/azure"
-  version = "~> 3.0"
+  version = "~> 9.0"
 
-  naming = module.naming
+  naming = local.naming
 
-  virtualnetwork = {
+  vnet = {
     name           = module.naming.virtual_network.name
     location       = module.rg.groups.demo.location
     resource_group = module.rg.groups.demo.name
@@ -40,7 +40,7 @@ module "vnet" {
 
 module "adf" {
   source  = "cloudnationhq/adf/azure"
-  version = "~> 0.1"
+  version = "~> 1.0"
 
   instance = {
     name                = module.naming.data_factory.name_unique

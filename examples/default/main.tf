@@ -18,7 +18,7 @@ module "rg" {
 }
 module "adf" {
   source  = "cloudnationhq/adf/azure"
-  version = "~> 0.1"
+  version = "~> 1.0"
 
   instance = {
     name                = module.naming.data_factory.name_unique
