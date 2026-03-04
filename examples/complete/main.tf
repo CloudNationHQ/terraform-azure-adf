@@ -19,12 +19,12 @@ module "rg" {
 
 module "storage" {
   source  = "cloudnationhq/sa/azure"
-  version = "~> 3.0"
+  version = "~> 4.0"
 
   storage = {
-    name           = module.naming.storage_account.name_unique
-    location       = module.rg.groups.demo.location
-    resource_group = module.rg.groups.demo.name
+    name                = module.naming.storage_account.name_unique
+    location            = module.rg.groups.demo.location
+    resource_group_name = module.rg.groups.demo.name
   }
 }
 
@@ -45,14 +45,14 @@ module "adf" {
       azure_blob_storage = {
         blob1 = {
           name                 = "LinkedService_BlobStorage"
-          storage_account_name = module.storage.account.name
+          service_endpoint     = module.storage.account.primary_blob_endpoint
           use_managed_identity = true
         }
       }
 
-      azure_sql_database = {
+      sql_server = {
         sql1 = {
-          name              = "LinkedService_AzureSQL"
+          name              = "LinkedService_SqlServer"
           connection_string = "Server=tcp:myserver.database.windows.net,1433;Initial Catalog=mydb;Persist Security Info=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
         }
       }
@@ -65,7 +65,7 @@ module "adf" {
           linked_service_name = "LinkedService_BlobStorage"
           path                = "input"
           filename            = "data.csv"
-          folder_path         = "datasets"
+          folder              = "datasets"
         }
 
         blob_output = {
@@ -73,7 +73,7 @@ module "adf" {
           linked_service_name = "LinkedService_BlobStorage"
           path                = "output"
           filename            = "processed.csv"
-          folder_path         = "datasets"
+          folder              = "datasets"
         }
       }
 
@@ -81,21 +81,25 @@ module "adf" {
         csv_data = {
           name                = "DelimitedText_Source"
           linked_service_name = "LinkedService_BlobStorage"
-          path                = "source"
-          filename            = "*.csv"
           column_delimiter    = ","
           row_delimiter       = "\n"
           first_row_as_header = true
-          folder_path         = "datasets"
+          folder              = "datasets"
+
+          azure_blob_storage_location = {
+            container = "source"
+            path      = "csv"
+            filename  = "*.csv"
+          }
         }
       }
 
-      azure_sql_table = {
+      sql_server_table = {
         sql_table = {
           name                = "SqlDataset_Target"
-          linked_service_name = "LinkedService_AzureSQL"
+          linked_service_name = "LinkedService_SqlServer"
           table_name          = "dbo.TargetTable"
-          folder_path         = "datasets"
+          folder              = "datasets"
         }
       }
     }
@@ -104,6 +108,7 @@ module "adf" {
       copy_pipeline = {
         name        = "CopyDataPipeline"
         description = "Copy data from blob to SQL"
+        folder      = "pipelines"
         activities = [
           {
             name = "CopyData"
@@ -128,7 +133,6 @@ module "adf" {
             }
           }
         ]
-        folder_path = "pipelines"
       }
     }
   }

@@ -1081,7 +1081,7 @@ variable "instance" {
 
     pipelines = optional(map(object({
       name                           = string
-      activities                     = list(map(any))
+      activities                     = any
       description                    = optional(string)
       annotations                    = optional(list(string))
       concurrency                    = optional(number)
