@@ -2,7 +2,7 @@ module "naming" {
   source  = "cloudnationhq/naming/azure"
   version = "~> 0.1"
 
-  suffix = ["demo", "ir"]
+  suffix = ["demo", "dev"]
 }
 
 module "rg" {
@@ -24,10 +24,10 @@ module "vnet" {
   naming = local.naming
 
   vnet = {
-    name               = module.naming.virtual_network.name
-    location           = module.rg.groups.demo.location
+    name                = module.naming.virtual_network.name
+    location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
-    address_space      = ["10.0.0.0/16"]
+    address_space       = ["10.0.0.0/16"]
 
     subnets = {
       ssis = {
