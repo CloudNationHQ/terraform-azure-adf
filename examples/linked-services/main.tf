@@ -33,17 +33,19 @@ module "storage" {
   version = "~> 4.0"
 
   storage = {
-    name                = module.naming.storage_account.name_unique
-    location            = module.rg.groups.demo.location
-    resource_group_name = module.rg.groups.demo.name
+    name                              = module.naming.storage_account.name_unique
+    location                          = module.rg.groups.demo.location
+    resource_group_name               = module.rg.groups.demo.name
+    infrastructure_encryption_enabled = true
+    is_hns_enabled                    = true
   }
 }
 
 module "data_factory" {
-  source  = "cloudnationhq/df/azure"
+  source  = "cloudnationhq/adf/azure"
   version = "~> 1.0"
 
-  factory = {
+  instance = {
     name                = module.naming.data_factory.name_unique
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
@@ -54,18 +56,18 @@ module "data_factory" {
 
     linked_services = {
       key_vault = {
-        main = {
+        ls_key_vault_main = {
           key_vault_id = module.kv.vault.id
         }
       }
       azure_blob_storage = {
-        main = {
+        ls_blob_storage_main = {
           service_endpoint     = module.storage.account.primary_blob_endpoint
           use_managed_identity = true
         }
       }
       data_lake_storage_gen2 = {
-        main = {
+        ls_adls_gen2_main = {
           url                  = module.storage.account.primary_dfs_endpoint
           use_managed_identity = true
         }

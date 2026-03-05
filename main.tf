@@ -1,13 +1,23 @@
 resource "azurerm_data_factory" "this" {
-  name                             = var.instance.name
-  location                         = coalesce(lookup(var.instance, "location", null), var.location)
-  resource_group_name              = coalesce(lookup(var.instance, "resource_group_name", null), var.resource_group_name)
+  name = var.instance.name
+
+  location = coalesce(
+    lookup(var.instance, "location", null), var.location
+  )
+
+  resource_group_name = coalesce(
+    lookup(var.instance, "resource_group_name", null), var.resource_group_name
+  )
+
   managed_virtual_network_enabled  = var.instance.managed_virtual_network_enabled
   public_network_enabled           = var.instance.public_network_enabled
   customer_managed_key_id          = var.instance.customer_managed_key_id
   customer_managed_key_identity_id = var.instance.customer_managed_key_identity_id
   purview_id                       = var.instance.purview_id
-  tags                             = coalesce(var.instance.tags, var.tags)
+
+  tags = coalesce(
+    var.instance.tags, var.tags
+  )
 
   dynamic "identity" {
     for_each = lookup(var.instance, "identity", null) != null ? [var.instance.identity] : []
@@ -56,7 +66,7 @@ resource "azurerm_data_factory" "this" {
 resource "azurerm_data_factory_credential_service_principal" "this" {
   for_each = var.instance.credentials.service_principal
 
-  name                 = each.value.name
+  name                 = coalesce(each.value.name, each.key)
   data_factory_id      = azurerm_data_factory.this.id
   tenant_id            = each.value.tenant_id
   service_principal_id = each.value.service_principal_id
@@ -76,7 +86,7 @@ resource "azurerm_data_factory_credential_service_principal" "this" {
 resource "azurerm_data_factory_credential_user_managed_identity" "this" {
   for_each = var.instance.credentials.user_managed_identity
 
-  name            = each.value.name
+  name            = coalesce(each.value.name, each.key)
   data_factory_id = azurerm_data_factory.this.id
   identity_id     = each.value.identity_id
   description     = each.value.description
@@ -87,7 +97,7 @@ resource "azurerm_data_factory_credential_user_managed_identity" "this" {
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "this" {
   for_each = var.instance.linked_services.azure_blob_storage
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -116,7 +126,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "this" {
 resource "azurerm_data_factory_linked_service_azure_sql_database" "this" {
   for_each = var.instance.linked_services.azure_sql_database
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -151,7 +161,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "this" {
 resource "azurerm_data_factory_linked_service_azure_table_storage" "this" {
   for_each = var.instance.linked_services.azure_table_storage
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -165,7 +175,7 @@ resource "azurerm_data_factory_linked_service_azure_table_storage" "this" {
 resource "azurerm_data_factory_linked_service_azure_databricks" "this" {
   for_each = var.instance.linked_services.azure_databricks
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -216,7 +226,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "this" {
 resource "azurerm_data_factory_linked_service_azure_file_storage" "this" {
   for_each = var.instance.linked_services.azure_file_storage
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -242,7 +252,7 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "this" {
 resource "azurerm_data_factory_linked_service_azure_function" "this" {
   for_each = var.instance.linked_services.azure_function
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -265,7 +275,7 @@ resource "azurerm_data_factory_linked_service_azure_function" "this" {
 resource "azurerm_data_factory_linked_service_azure_search" "this" {
   for_each = var.instance.linked_services.azure_search
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -280,7 +290,7 @@ resource "azurerm_data_factory_linked_service_azure_search" "this" {
 resource "azurerm_data_factory_linked_service_cosmosdb" "this" {
   for_each = var.instance.linked_services.cosmosdb
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -297,7 +307,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "this" {
 resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "this" {
   for_each = var.instance.linked_services.cosmosdb_mongoapi
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -313,7 +323,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "this" {
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "this" {
   for_each = var.instance.linked_services.data_lake_storage_gen2
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -332,7 +342,7 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "this" {
 resource "azurerm_data_factory_linked_service_key_vault" "this" {
   for_each = var.instance.linked_services.key_vault
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   key_vault_id             = each.value.key_vault_id
   description              = each.value.description
@@ -345,7 +355,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "this" {
 resource "azurerm_data_factory_linked_service_kusto" "this" {
   for_each = var.instance.linked_services.kusto
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -364,7 +374,7 @@ resource "azurerm_data_factory_linked_service_kusto" "this" {
 resource "azurerm_data_factory_linked_service_mysql" "this" {
   for_each = var.instance.linked_services.mysql
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -378,7 +388,7 @@ resource "azurerm_data_factory_linked_service_mysql" "this" {
 resource "azurerm_data_factory_linked_service_odata" "this" {
   for_each = var.instance.linked_services.odata
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -400,7 +410,7 @@ resource "azurerm_data_factory_linked_service_odata" "this" {
 resource "azurerm_data_factory_linked_service_odbc" "this" {
   for_each = var.instance.linked_services.odbc
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -422,7 +432,7 @@ resource "azurerm_data_factory_linked_service_odbc" "this" {
 resource "azurerm_data_factory_linked_service_postgresql" "this" {
   for_each = var.instance.linked_services.postgresql
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -436,7 +446,7 @@ resource "azurerm_data_factory_linked_service_postgresql" "this" {
 resource "azurerm_data_factory_linked_service_sftp" "this" {
   for_each = var.instance.linked_services.sftp
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -482,7 +492,7 @@ resource "azurerm_data_factory_linked_service_sftp" "this" {
 resource "azurerm_data_factory_linked_service_snowflake" "this" {
   for_each = var.instance.linked_services.snowflake
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -504,7 +514,7 @@ resource "azurerm_data_factory_linked_service_snowflake" "this" {
 resource "azurerm_data_factory_linked_service_sql_managed_instance" "this" {
   for_each = var.instance.linked_services.sql_managed_instance
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -536,7 +546,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "this" {
 resource "azurerm_data_factory_linked_service_sql_server" "this" {
   for_each = var.instance.linked_services.sql_server
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -567,7 +577,7 @@ resource "azurerm_data_factory_linked_service_sql_server" "this" {
 resource "azurerm_data_factory_linked_service_synapse" "this" {
   for_each = var.instance.linked_services.synapse
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -589,7 +599,7 @@ resource "azurerm_data_factory_linked_service_synapse" "this" {
 resource "azurerm_data_factory_linked_service_web" "this" {
   for_each = var.instance.linked_services.web
 
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, each.key)
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
   integration_runtime_name = each.value.integration_runtime_name
@@ -606,7 +616,7 @@ resource "azurerm_data_factory_linked_service_web" "this" {
 resource "azurerm_data_factory_linked_custom_service" "this" {
   for_each = var.instance.linked_services.custom
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   description           = each.value.description
   annotations           = each.value.annotations
@@ -630,7 +640,7 @@ resource "azurerm_data_factory_linked_custom_service" "this" {
 resource "azurerm_data_factory_dataset_azure_blob" "this" {
   for_each = var.instance.datasets.azure_blob
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -683,7 +693,7 @@ resource "azurerm_data_factory_dataset_azure_blob" "this" {
 resource "azurerm_data_factory_dataset_azure_sql_table" "this" {
   for_each = var.instance.datasets.azure_sql_table
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   folder                = each.value.folder
   description           = each.value.description
@@ -733,7 +743,7 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "this" {
 resource "azurerm_data_factory_dataset_binary" "this" {
   for_each = var.instance.datasets.binary
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -813,7 +823,7 @@ resource "azurerm_data_factory_dataset_binary" "this" {
 resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "this" {
   for_each = var.instance.datasets.cosmosdb_sqlapi
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -863,7 +873,7 @@ resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "this" {
 resource "azurerm_data_factory_dataset_delimited_text" "this" {
   for_each = var.instance.datasets.delimited_text
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -956,7 +966,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "this" {
 resource "azurerm_data_factory_dataset_http" "this" {
   for_each = var.instance.datasets.http
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -1008,7 +1018,7 @@ resource "azurerm_data_factory_dataset_http" "this" {
 resource "azurerm_data_factory_dataset_json" "this" {
   for_each = var.instance.datasets.json
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -1081,7 +1091,7 @@ resource "azurerm_data_factory_dataset_json" "this" {
 resource "azurerm_data_factory_dataset_mysql" "this" {
   for_each = var.instance.datasets.mysql
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -1131,7 +1141,7 @@ resource "azurerm_data_factory_dataset_mysql" "this" {
 resource "azurerm_data_factory_dataset_parquet" "this" {
   for_each = var.instance.datasets.parquet
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -1217,7 +1227,7 @@ resource "azurerm_data_factory_dataset_parquet" "this" {
 resource "azurerm_data_factory_dataset_postgresql" "this" {
   for_each = var.instance.datasets.postgresql
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -1267,7 +1277,7 @@ resource "azurerm_data_factory_dataset_postgresql" "this" {
 resource "azurerm_data_factory_dataset_snowflake" "this" {
   for_each = var.instance.datasets.snowflake
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -1319,7 +1329,7 @@ resource "azurerm_data_factory_dataset_snowflake" "this" {
 resource "azurerm_data_factory_dataset_sql_server_table" "this" {
   for_each = var.instance.datasets.sql_server_table
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   linked_service_name   = each.value.linked_service_name
   folder                = each.value.folder
@@ -1369,7 +1379,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "this" {
 resource "azurerm_data_factory_custom_dataset" "this" {
   for_each = var.instance.datasets.custom
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   folder                = each.value.folder
   description           = each.value.description
@@ -1420,7 +1430,7 @@ resource "azurerm_data_factory_custom_dataset" "this" {
 resource "azurerm_data_factory_data_flow" "this" {
   for_each = var.instance.data_flows
 
-  name            = each.value.name
+  name            = coalesce(each.value.name, each.key)
   data_factory_id = azurerm_data_factory.this.id
   description     = each.value.description
   folder          = each.value.folder
@@ -1563,7 +1573,7 @@ resource "azurerm_data_factory_data_flow" "this" {
 resource "azurerm_data_factory_flowlet_data_flow" "this" {
   for_each = var.instance.flowlet_data_flows
 
-  name            = each.value.name
+  name            = coalesce(each.value.name, each.key)
   data_factory_id = azurerm_data_factory.this.id
   description     = each.value.description
   folder          = each.value.folder
@@ -1707,7 +1717,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
 resource "azurerm_data_factory_integration_runtime_azure" "this" {
   for_each = var.instance.integration_runtimes.azure
 
-  name                    = each.value.name
+  name                    = coalesce(each.value.name, each.key)
   data_factory_id         = azurerm_data_factory.this.id
   location                = each.value.location
   compute_type            = each.value.compute_type
@@ -1721,7 +1731,7 @@ resource "azurerm_data_factory_integration_runtime_azure" "this" {
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
   for_each = var.instance.integration_runtimes.azure_ssis
 
-  name                             = each.value.name
+  name                             = coalesce(each.value.name, each.key)
   data_factory_id                  = azurerm_data_factory.this.id
   location                         = each.value.location
   node_size                        = each.value.node_size
@@ -1845,7 +1855,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
 resource "azurerm_data_factory_integration_runtime_self_hosted" "this" {
   for_each = var.instance.integration_runtimes.self_hosted
 
-  name                                         = each.value.name
+  name                                         = coalesce(each.value.name, each.key)
   data_factory_id                              = azurerm_data_factory.this.id
   description                                  = each.value.description
   self_contained_interactive_authoring_enabled = each.value.self_contained_interactive_authoring_enabled
@@ -1862,7 +1872,7 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "this" {
 resource "azurerm_data_factory_pipeline" "this" {
   for_each = var.instance.pipelines
 
-  name                           = each.value.name
+  name                           = coalesce(each.value.name, each.key)
   data_factory_id                = azurerm_data_factory.this.id
   description                    = each.value.description
   annotations                    = each.value.annotations
@@ -1919,7 +1929,7 @@ resource "azurerm_data_factory_pipeline" "this" {
 resource "azurerm_data_factory_trigger_blob_event" "this" {
   for_each = var.instance.triggers.blob_event
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   storage_account_id    = each.value.storage_account_id
   events                = each.value.events
@@ -1943,7 +1953,7 @@ resource "azurerm_data_factory_trigger_blob_event" "this" {
 resource "azurerm_data_factory_trigger_schedule" "this" {
   for_each = var.instance.triggers.schedule
 
-  name                = each.value.name
+  name                = coalesce(each.value.name, each.key)
   data_factory_id     = azurerm_data_factory.this.id
   frequency           = each.value.frequency
   interval            = each.value.interval
@@ -1986,7 +1996,7 @@ resource "azurerm_data_factory_trigger_schedule" "this" {
 resource "azurerm_data_factory_trigger_tumbling_window" "this" {
   for_each = var.instance.triggers.tumbling_window
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   frequency             = each.value.frequency
   interval              = each.value.interval
@@ -2028,7 +2038,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "this" {
 resource "azurerm_data_factory_trigger_custom_event" "this" {
   for_each = var.instance.triggers.custom_event
 
-  name                  = each.value.name
+  name                  = coalesce(each.value.name, each.key)
   data_factory_id       = azurerm_data_factory.this.id
   eventgrid_topic_id    = each.value.eventgrid_topic_id
   events                = each.value.events
@@ -2052,7 +2062,7 @@ resource "azurerm_data_factory_trigger_custom_event" "this" {
 resource "azurerm_data_factory_managed_private_endpoint" "this" {
   for_each = var.instance.managed_private_endpoints
 
-  name               = each.value.name
+  name               = coalesce(each.value.name, each.key)
   data_factory_id    = azurerm_data_factory.this.id
   target_resource_id = each.value.target_resource_id
   subresource_name   = each.value.subresource_name
