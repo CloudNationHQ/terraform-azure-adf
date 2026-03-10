@@ -4,16 +4,25 @@ This terraform module simplifies the creation and management of azure data facto
 
 ## Features
 
-* Supports over twenty linked service types including azure blob storage, sql server, databricks, snowflake, sftp, and more.
-* Offers a wide range of dataset types such as parquet, json, delimited text, binary, sql server table, and azure blob.
-* Provides data flow and flowlet data flow capabilities for complex data transformations.
-* Includes three integration runtime types: azure, azure ssis, and self-hosted.
-* Enables pipeline definitions with json-encoded activities for flexible orchestration.
-* Supports multiple trigger types including blob event, schedule, tumbling window, and custom event.
-* Offers managed private endpoint support for secure connectivity.
-* Provides customer managed key encryption for enhanced data protection.
-* Supports credentials through service principal and user managed identity.
-* Integrates with github and azure devops for git-based source control.
+Supports over twenty linked service types including azure blob storage, sql server, databricks, snowflake, sftp, and more.
+
+Offers a wide range of dataset types such as parquet, json, delimited text, binary, sql server table, and azure blob.
+
+Provides data flow and flowlet data flow capabilities for complex data transformations.
+
+Includes three integration runtime types: azure, azure ssis, and self-hosted.
+
+Enables pipeline definitions with json-encoded activities for flexible orchestration.
+
+Supports multiple trigger types including blob event, schedule, tumbling window, and custom event.
+
+Offers managed private endpoint support for secure connectivity.
+
+Provides customer managed key encryption for enhanced data protection.
+
+Supports credentials through service principal and user managed identity.
+
+Integrates with github and azure devops for git-based source control.
 
 Utilization of terratest for robust validation.
 
@@ -1404,18 +1413,14 @@ Full examples detailing all usages, along with integrations with dependency modu
 
 To update the module's documentation run `make doc`
 
-## Authors
-
-Module is maintained by [these awesome contributors](https://github.com/cloudnationhq/terraform-azure-$ResourceName/graphs/contributors).
-
 ## Contributors
 
 We welcome contributions from the community! Whether it's reporting a bug, suggesting a new feature, or submitting a pull request, your input is highly valued.
 
 For more information, please see our contribution [guidelines](./CONTRIBUTING.md). <br><br>
 
-<a href="https://github.com/cloudnationhq/terraform-azure-$ResourceName/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=cloudnationhq/terraform-azure-$ResourceName" />
+<a href="https://github.com/cloudnationhq/terraform-azure-adf/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=cloudnationhq/terraform-azure-adf" />
 </a>
 
 ## License
@@ -1424,6 +1429,6 @@ MIT Licensed. See [LICENSE](./LICENSE) for full details.
 
 ## References
 
-- [Documentation](https://learn.microsoft.com/en-us/azure/$ResourceName/)
-- [Rest Api](https://learn.microsoft.com/en-us/rest/api/$ResourceName/)
-- [Rest Api Specs](https://github.com/Azure/azure-rest-api-specs/tree/1f449b5a17448f05ce1cd914f8ed75a0b568d130/specification/$rResourceName)
+- [Documentation](https://learn.microsoft.com/en-us/azure/data-factory/)
+- [Rest Api](https://learn.microsoft.com/en-us/rest/api/datafactory/)
+- [Rest Api Specs](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/datafactory)
