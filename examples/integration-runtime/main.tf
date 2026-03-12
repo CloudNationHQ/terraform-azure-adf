@@ -1,6 +1,6 @@
 module "naming" {
   source  = "cloudnationhq/naming/azure"
-  version = "~> 0.1"
+  version = "~> 0.27"
 
   suffix = ["demo", "dev"]
 }
@@ -53,23 +53,20 @@ module "adf" {
 
     integration_runtimes = {
       azure = {
-        azure_ir = {
-          name        = "AzureIntegrationRuntime"
+        azure-ir = {
           location    = module.rg.groups.demo.location
           description = "Auto-resolving Azure Integration Runtime"
         }
       }
 
       self_hosted = {
-        self_hosted_ir = {
-          name        = "SelfHostedIntegrationRuntime"
+        self-hosted-ir = {
           description = "Self-hosted IR for on-premises data sources"
         }
       }
 
       azure_ssis = {
-        ssis_ir = {
-          name      = "SSISIntegrationRuntime"
+        ssis-ir = {
           location  = module.rg.groups.demo.location
           node_size = "Standard_D2_v3"
 

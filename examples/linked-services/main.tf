@@ -1,6 +1,6 @@
 module "naming" {
   source  = "cloudnationhq/naming/azure"
-  version = "~> 0.25"
+  version = "~> 0.27"
 
   suffix = ["demo", "dev"]
 }
@@ -56,18 +56,18 @@ module "data_factory" {
 
     linked_services = {
       key_vault = {
-        ls_key_vault_main = {
+        key_vault_main = {
           key_vault_id = module.kv.vault.id
         }
       }
       azure_blob_storage = {
-        ls_blob_storage_main = {
+        blob_storage_main = {
           service_endpoint     = module.storage.account.primary_blob_endpoint
           use_managed_identity = true
         }
       }
       data_lake_storage_gen2 = {
-        ls_adls_gen2_main = {
+        adls_gen2_main = {
           url                  = module.storage.account.primary_dfs_endpoint
           use_managed_identity = true
         }

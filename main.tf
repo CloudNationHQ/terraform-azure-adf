@@ -66,7 +66,7 @@ resource "azurerm_data_factory" "this" {
 resource "azurerm_data_factory_credential_service_principal" "this" {
   for_each = var.instance.credentials.service_principal
 
-  name                 = coalesce(each.value.name, each.key)
+  name                 = coalesce(each.value.name, try("${var.naming.data_factory_credential_service_principal}-${each.key}", each.key))
   data_factory_id      = azurerm_data_factory.this.id
   tenant_id            = each.value.tenant_id
   service_principal_id = each.value.service_principal_id
@@ -76,7 +76,31 @@ resource "azurerm_data_factory_credential_service_principal" "this" {
   dynamic "service_principal_key" {
     for_each = lookup(each.value, "service_principal_key", null) != null ? [each.value.service_principal_key] : []
     content {
-      linked_service_name = service_principal_key.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[service_principal_key.value.linked_service_name], service_principal_key.value.linked_service_name)
       secret_name         = service_principal_key.value.secret_name
       secret_version      = service_principal_key.value.secret_version
     }
@@ -86,7 +110,7 @@ resource "azurerm_data_factory_credential_service_principal" "this" {
 resource "azurerm_data_factory_credential_user_managed_identity" "this" {
   for_each = var.instance.credentials.user_managed_identity
 
-  name            = coalesce(each.value.name, each.key)
+  name            = coalesce(each.value.name, try("${var.naming.data_factory_credential_user_managed_identity}-${each.key}", each.key))
   data_factory_id = azurerm_data_factory.this.id
   identity_id     = each.value.identity_id
   description     = each.value.description
@@ -97,10 +121,14 @@ resource "azurerm_data_factory_credential_user_managed_identity" "this" {
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "this" {
   for_each = var.instance.linked_services.azure_blob_storage
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -117,7 +145,31 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "this" {
   dynamic "sas_token_linked_key_vault_key" {
     for_each = lookup(each.value, "sas_token_linked_key_vault_key", null) != null ? [each.value.sas_token_linked_key_vault_key] : []
     content {
-      linked_service_name = sas_token_linked_key_vault_key.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[sas_token_linked_key_vault_key.value.linked_service_name], sas_token_linked_key_vault_key.value.linked_service_name)
       secret_name         = sas_token_linked_key_vault_key.value.secret_name
     }
   }
@@ -126,10 +178,14 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "this" {
 resource "azurerm_data_factory_linked_service_azure_sql_database" "this" {
   for_each = var.instance.linked_services.azure_sql_database
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -139,12 +195,39 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "this" {
   service_principal_id  = each.value.service_principal_id
   service_principal_key = each.value.service_principal_key
   tenant_id             = each.value.tenant_id
-  credential_name       = each.value.credential_name
+  credential_name       = try(merge(
+    { for k, v in var.instance.credentials.service_principal : k => coalesce(v.name, try("${var.naming.data_factory_credential_service_principal}-${k}", k)) },
+    { for k, v in var.instance.credentials.user_managed_identity : k => coalesce(v.name, try("${var.naming.data_factory_credential_user_managed_identity}-${k}", k)) },
+  )[each.value.credential_name], each.value.credential_name)
 
   dynamic "key_vault_connection_string" {
     for_each = lookup(each.value, "key_vault_connection_string", null) != null ? [each.value.key_vault_connection_string] : []
     content {
-      linked_service_name = key_vault_connection_string.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_connection_string.value.linked_service_name], key_vault_connection_string.value.linked_service_name)
       secret_name         = key_vault_connection_string.value.secret_name
     }
   }
@@ -152,7 +235,31 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "this" {
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
     content {
-      linked_service_name = key_vault_password.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_password.value.linked_service_name], key_vault_password.value.linked_service_name)
       secret_name         = key_vault_password.value.secret_name
     }
   }
@@ -161,10 +268,14 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "this" {
 resource "azurerm_data_factory_linked_service_azure_table_storage" "this" {
   for_each = var.instance.linked_services.azure_table_storage
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -175,10 +286,14 @@ resource "azurerm_data_factory_linked_service_azure_table_storage" "this" {
 resource "azurerm_data_factory_linked_service_azure_databricks" "this" {
   for_each = var.instance.linked_services.azure_databricks
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -191,7 +306,31 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "this" {
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
     content {
-      linked_service_name = key_vault_password.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_password.value.linked_service_name], key_vault_password.value.linked_service_name)
       secret_name         = key_vault_password.value.secret_name
     }
   }
@@ -226,10 +365,14 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "this" {
 resource "azurerm_data_factory_linked_service_azure_file_storage" "this" {
   for_each = var.instance.linked_services.azure_file_storage
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -243,7 +386,31 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "this" {
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
     content {
-      linked_service_name = key_vault_password.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_password.value.linked_service_name], key_vault_password.value.linked_service_name)
       secret_name         = key_vault_password.value.secret_name
     }
   }
@@ -252,10 +419,14 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "this" {
 resource "azurerm_data_factory_linked_service_azure_function" "this" {
   for_each = var.instance.linked_services.azure_function
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_azure_function}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -266,7 +437,31 @@ resource "azurerm_data_factory_linked_service_azure_function" "this" {
   dynamic "key_vault_key" {
     for_each = lookup(each.value, "key_vault_key", null) != null ? [each.value.key_vault_key] : []
     content {
-      linked_service_name = key_vault_key.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_key.value.linked_service_name], key_vault_key.value.linked_service_name)
       secret_name         = key_vault_key.value.secret_name
     }
   }
@@ -275,10 +470,14 @@ resource "azurerm_data_factory_linked_service_azure_function" "this" {
 resource "azurerm_data_factory_linked_service_azure_search" "this" {
   for_each = var.instance.linked_services.azure_search
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_azure_search}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -290,10 +489,14 @@ resource "azurerm_data_factory_linked_service_azure_search" "this" {
 resource "azurerm_data_factory_linked_service_cosmosdb" "this" {
   for_each = var.instance.linked_services.cosmosdb
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -307,10 +510,14 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "this" {
 resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "this" {
   for_each = var.instance.linked_services.cosmosdb_mongoapi
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -323,10 +530,14 @@ resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "this" {
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "this" {
   for_each = var.instance.linked_services.data_lake_storage_gen2
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -342,11 +553,15 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "this" {
 resource "azurerm_data_factory_linked_service_key_vault" "this" {
   for_each = var.instance.linked_services.key_vault
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_key_vault}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   key_vault_id             = each.value.key_vault_id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -355,10 +570,14 @@ resource "azurerm_data_factory_linked_service_key_vault" "this" {
 resource "azurerm_data_factory_linked_service_kusto" "this" {
   for_each = var.instance.linked_services.kusto
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_kusto}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -374,10 +593,14 @@ resource "azurerm_data_factory_linked_service_kusto" "this" {
 resource "azurerm_data_factory_linked_service_mysql" "this" {
   for_each = var.instance.linked_services.mysql
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_mysql}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -388,10 +611,14 @@ resource "azurerm_data_factory_linked_service_mysql" "this" {
 resource "azurerm_data_factory_linked_service_odata" "this" {
   for_each = var.instance.linked_services.odata
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_odata}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -410,10 +637,14 @@ resource "azurerm_data_factory_linked_service_odata" "this" {
 resource "azurerm_data_factory_linked_service_odbc" "this" {
   for_each = var.instance.linked_services.odbc
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_odbc}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -432,10 +663,14 @@ resource "azurerm_data_factory_linked_service_odbc" "this" {
 resource "azurerm_data_factory_linked_service_postgresql" "this" {
   for_each = var.instance.linked_services.postgresql
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_postgresql}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -446,10 +681,14 @@ resource "azurerm_data_factory_linked_service_postgresql" "this" {
 resource "azurerm_data_factory_linked_service_sftp" "this" {
   for_each = var.instance.linked_services.sftp
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_sftp}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -467,7 +706,31 @@ resource "azurerm_data_factory_linked_service_sftp" "this" {
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
     content {
-      linked_service_name = key_vault_password.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_password.value.linked_service_name], key_vault_password.value.linked_service_name)
       secret_name         = key_vault_password.value.secret_name
     }
   }
@@ -475,7 +738,31 @@ resource "azurerm_data_factory_linked_service_sftp" "this" {
   dynamic "key_vault_private_key_content_base64" {
     for_each = lookup(each.value, "key_vault_private_key_content_base64", null) != null ? [each.value.key_vault_private_key_content_base64] : []
     content {
-      linked_service_name = key_vault_private_key_content_base64.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_private_key_content_base64.value.linked_service_name], key_vault_private_key_content_base64.value.linked_service_name)
       secret_name         = key_vault_private_key_content_base64.value.secret_name
     }
   }
@@ -483,7 +770,31 @@ resource "azurerm_data_factory_linked_service_sftp" "this" {
   dynamic "key_vault_private_key_passphrase" {
     for_each = lookup(each.value, "key_vault_private_key_passphrase", null) != null ? [each.value.key_vault_private_key_passphrase] : []
     content {
-      linked_service_name = key_vault_private_key_passphrase.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_private_key_passphrase.value.linked_service_name], key_vault_private_key_passphrase.value.linked_service_name)
       secret_name         = key_vault_private_key_passphrase.value.secret_name
     }
   }
@@ -492,10 +803,14 @@ resource "azurerm_data_factory_linked_service_sftp" "this" {
 resource "azurerm_data_factory_linked_service_snowflake" "this" {
   for_each = var.instance.linked_services.snowflake
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_snowflake}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -505,7 +820,31 @@ resource "azurerm_data_factory_linked_service_snowflake" "this" {
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
     content {
-      linked_service_name = key_vault_password.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_password.value.linked_service_name], key_vault_password.value.linked_service_name)
       secret_name         = key_vault_password.value.secret_name
     }
   }
@@ -514,10 +853,14 @@ resource "azurerm_data_factory_linked_service_snowflake" "this" {
 resource "azurerm_data_factory_linked_service_sql_managed_instance" "this" {
   for_each = var.instance.linked_services.sql_managed_instance
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
 
@@ -529,7 +872,31 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "this" {
   dynamic "key_vault_connection_string" {
     for_each = lookup(each.value, "key_vault_connection_string", null) != null ? [each.value.key_vault_connection_string] : []
     content {
-      linked_service_name = key_vault_connection_string.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_connection_string.value.linked_service_name], key_vault_connection_string.value.linked_service_name)
       secret_name         = key_vault_connection_string.value.secret_name
     }
   }
@@ -537,7 +904,31 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "this" {
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
     content {
-      linked_service_name = key_vault_password.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_password.value.linked_service_name], key_vault_password.value.linked_service_name)
       secret_name         = key_vault_password.value.secret_name
     }
   }
@@ -546,10 +937,14 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "this" {
 resource "azurerm_data_factory_linked_service_sql_server" "this" {
   for_each = var.instance.linked_services.sql_server
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_sql_server}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -560,7 +955,31 @@ resource "azurerm_data_factory_linked_service_sql_server" "this" {
   dynamic "key_vault_connection_string" {
     for_each = lookup(each.value, "key_vault_connection_string", null) != null ? [each.value.key_vault_connection_string] : []
     content {
-      linked_service_name = key_vault_connection_string.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_connection_string.value.linked_service_name], key_vault_connection_string.value.linked_service_name)
       secret_name         = key_vault_connection_string.value.secret_name
     }
   }
@@ -568,7 +987,31 @@ resource "azurerm_data_factory_linked_service_sql_server" "this" {
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
     content {
-      linked_service_name = key_vault_password.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_password.value.linked_service_name], key_vault_password.value.linked_service_name)
       secret_name         = key_vault_password.value.secret_name
     }
   }
@@ -577,10 +1020,14 @@ resource "azurerm_data_factory_linked_service_sql_server" "this" {
 resource "azurerm_data_factory_linked_service_synapse" "this" {
   for_each = var.instance.linked_services.synapse
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_synapse}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -590,7 +1037,31 @@ resource "azurerm_data_factory_linked_service_synapse" "this" {
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
     content {
-      linked_service_name = key_vault_password.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_password.value.linked_service_name], key_vault_password.value.linked_service_name)
       secret_name         = key_vault_password.value.secret_name
     }
   }
@@ -599,10 +1070,14 @@ resource "azurerm_data_factory_linked_service_synapse" "this" {
 resource "azurerm_data_factory_linked_service_web" "this" {
   for_each = var.instance.linked_services.web
 
-  name                     = coalesce(each.value.name, each.key)
+  name                     = coalesce(each.value.name, try("${var.naming.data_factory_linked_service_web}-${each.key}", each.key))
   data_factory_id          = azurerm_data_factory.this.id
   description              = each.value.description
-  integration_runtime_name = each.value.integration_runtime_name
+  integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[each.value.integration_runtime_name], each.value.integration_runtime_name)
   annotations              = each.value.annotations
   parameters               = each.value.parameters
   additional_properties    = each.value.additional_properties
@@ -616,7 +1091,7 @@ resource "azurerm_data_factory_linked_service_web" "this" {
 resource "azurerm_data_factory_linked_custom_service" "this" {
   for_each = var.instance.linked_services.custom
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_linked_custom_service}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
   description           = each.value.description
   annotations           = each.value.annotations
@@ -630,7 +1105,11 @@ resource "azurerm_data_factory_linked_custom_service" "this" {
   dynamic "integration_runtime" {
     for_each = lookup(each.value, "integration_runtime", null) != null ? [each.value.integration_runtime] : []
     content {
-      name       = integration_runtime.value.name
+      name       = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[integration_runtime.value.name], integration_runtime.value.name)
       parameters = integration_runtime.value.parameters
     }
   }
@@ -640,9 +1119,33 @@ resource "azurerm_data_factory_linked_custom_service" "this" {
 resource "azurerm_data_factory_dataset_azure_blob" "this" {
   for_each = var.instance.datasets.azure_blob
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_azure_blob}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -693,7 +1196,7 @@ resource "azurerm_data_factory_dataset_azure_blob" "this" {
 resource "azurerm_data_factory_dataset_azure_sql_table" "this" {
   for_each = var.instance.datasets.azure_sql_table
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_azure_sql_table}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
   folder                = each.value.folder
   description           = each.value.description
@@ -743,9 +1246,33 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "this" {
 resource "azurerm_data_factory_dataset_binary" "this" {
   for_each = var.instance.datasets.binary
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_binary}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -823,9 +1350,33 @@ resource "azurerm_data_factory_dataset_binary" "this" {
 resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "this" {
   for_each = var.instance.datasets.cosmosdb_sqlapi
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_cosmosdb_sqlapi}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -873,9 +1424,33 @@ resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "this" {
 resource "azurerm_data_factory_dataset_delimited_text" "this" {
   for_each = var.instance.datasets.delimited_text
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_delimited_text}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -966,9 +1541,33 @@ resource "azurerm_data_factory_dataset_delimited_text" "this" {
 resource "azurerm_data_factory_dataset_http" "this" {
   for_each = var.instance.datasets.http
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_http}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -1018,9 +1617,33 @@ resource "azurerm_data_factory_dataset_http" "this" {
 resource "azurerm_data_factory_dataset_json" "this" {
   for_each = var.instance.datasets.json
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_json}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -1091,9 +1714,33 @@ resource "azurerm_data_factory_dataset_json" "this" {
 resource "azurerm_data_factory_dataset_mysql" "this" {
   for_each = var.instance.datasets.mysql
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_mysql}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -1141,9 +1788,33 @@ resource "azurerm_data_factory_dataset_mysql" "this" {
 resource "azurerm_data_factory_dataset_parquet" "this" {
   for_each = var.instance.datasets.parquet
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_parquet}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -1227,9 +1898,33 @@ resource "azurerm_data_factory_dataset_parquet" "this" {
 resource "azurerm_data_factory_dataset_postgresql" "this" {
   for_each = var.instance.datasets.postgresql
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_postgresql}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -1277,9 +1972,33 @@ resource "azurerm_data_factory_dataset_postgresql" "this" {
 resource "azurerm_data_factory_dataset_snowflake" "this" {
   for_each = var.instance.datasets.snowflake
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_snowflake}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -1329,9 +2048,33 @@ resource "azurerm_data_factory_dataset_snowflake" "this" {
 resource "azurerm_data_factory_dataset_sql_server_table" "this" {
   for_each = var.instance.datasets.sql_server_table
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_dataset_sql_server_table}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
-  linked_service_name   = each.value.linked_service_name
+  linked_service_name   = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[each.value.linked_service_name], each.value.linked_service_name)
   folder                = each.value.folder
   description           = each.value.description
   annotations           = each.value.annotations
@@ -1379,7 +2122,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "this" {
 resource "azurerm_data_factory_custom_dataset" "this" {
   for_each = var.instance.datasets.custom
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_custom_dataset}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
   folder                = each.value.folder
   description           = each.value.description
@@ -1394,7 +2137,31 @@ resource "azurerm_data_factory_custom_dataset" "this" {
   dynamic "linked_service" {
     for_each = lookup(each.value, "linked_service", null) != null ? [each.value.linked_service] : []
     content {
-      name       = linked_service.value.name
+      name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[linked_service.value.name], linked_service.value.name)
       parameters = linked_service.value.parameters
     }
   }
@@ -1430,7 +2197,7 @@ resource "azurerm_data_factory_custom_dataset" "this" {
 resource "azurerm_data_factory_data_flow" "this" {
   for_each = var.instance.data_flows
 
-  name            = coalesce(each.value.name, each.key)
+  name            = coalesce(each.value.name, try("${var.naming.data_factory_data_flow}-${each.key}", each.key))
   data_factory_id = azurerm_data_factory.this.id
   description     = each.value.description
   folder          = each.value.folder
@@ -1447,7 +2214,31 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "linked_service" {
         for_each = lookup(source.value, "linked_service", null) != null ? [source.value.linked_service] : []
         content {
-          name       = linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[linked_service.value.name], linked_service.value.name)
           parameters = linked_service.value.parameters
         }
       }
@@ -1455,7 +2246,21 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "dataset" {
         for_each = lookup(source.value, "dataset", null) != null ? [source.value.dataset] : []
         content {
-          name       = dataset.value.name
+          name       = try(merge(
+    { for k, v in var.instance.datasets.azure_blob : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_blob}-${k}", k)) },
+    { for k, v in var.instance.datasets.azure_sql_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_sql_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.binary : k => coalesce(v.name, try("${var.naming.data_factory_dataset_binary}-${k}", k)) },
+    { for k, v in var.instance.datasets.cosmosdb_sqlapi : k => coalesce(v.name, try("${var.naming.data_factory_dataset_cosmosdb_sqlapi}-${k}", k)) },
+    { for k, v in var.instance.datasets.delimited_text : k => coalesce(v.name, try("${var.naming.data_factory_dataset_delimited_text}-${k}", k)) },
+    { for k, v in var.instance.datasets.http : k => coalesce(v.name, try("${var.naming.data_factory_dataset_http}-${k}", k)) },
+    { for k, v in var.instance.datasets.json : k => coalesce(v.name, try("${var.naming.data_factory_dataset_json}-${k}", k)) },
+    { for k, v in var.instance.datasets.mysql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_mysql}-${k}", k)) },
+    { for k, v in var.instance.datasets.parquet : k => coalesce(v.name, try("${var.naming.data_factory_dataset_parquet}-${k}", k)) },
+    { for k, v in var.instance.datasets.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_postgresql}-${k}", k)) },
+    { for k, v in var.instance.datasets.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_dataset_snowflake}-${k}", k)) },
+    { for k, v in var.instance.datasets.sql_server_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_sql_server_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.custom : k => coalesce(v.name, try("${var.naming.data_factory_custom_dataset}-${k}", k)) },
+  )[dataset.value.name], dataset.value.name)
           parameters = dataset.value.parameters
         }
       }
@@ -1463,7 +2268,7 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "flowlet" {
         for_each = lookup(source.value, "flowlet", null) != null ? [source.value.flowlet] : []
         content {
-          name               = flowlet.value.name
+          name               = contains(keys(var.instance.flowlet_data_flows), flowlet.value.name) ? coalesce(var.instance.flowlet_data_flows[flowlet.value.name].name, try("${var.naming.data_factory_flowlet_data_flow}-${flowlet.value.name}", flowlet.value.name)) : flowlet.value.name
           dataset_parameters = flowlet.value.dataset_parameters
           parameters         = flowlet.value.parameters
         }
@@ -1472,7 +2277,31 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "schema_linked_service" {
         for_each = lookup(source.value, "schema_linked_service", null) != null ? [source.value.schema_linked_service] : []
         content {
-          name       = schema_linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[schema_linked_service.value.name], schema_linked_service.value.name)
           parameters = schema_linked_service.value.parameters
         }
       }
@@ -1480,7 +2309,31 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "rejected_linked_service" {
         for_each = lookup(source.value, "rejected_linked_service", null) != null ? [source.value.rejected_linked_service] : []
         content {
-          name       = rejected_linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[rejected_linked_service.value.name], rejected_linked_service.value.name)
           parameters = rejected_linked_service.value.parameters
         }
       }
@@ -1496,7 +2349,31 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "linked_service" {
         for_each = lookup(sink.value, "linked_service", null) != null ? [sink.value.linked_service] : []
         content {
-          name       = linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[linked_service.value.name], linked_service.value.name)
           parameters = linked_service.value.parameters
         }
       }
@@ -1504,7 +2381,21 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "dataset" {
         for_each = lookup(sink.value, "dataset", null) != null ? [sink.value.dataset] : []
         content {
-          name       = dataset.value.name
+          name       = try(merge(
+    { for k, v in var.instance.datasets.azure_blob : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_blob}-${k}", k)) },
+    { for k, v in var.instance.datasets.azure_sql_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_sql_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.binary : k => coalesce(v.name, try("${var.naming.data_factory_dataset_binary}-${k}", k)) },
+    { for k, v in var.instance.datasets.cosmosdb_sqlapi : k => coalesce(v.name, try("${var.naming.data_factory_dataset_cosmosdb_sqlapi}-${k}", k)) },
+    { for k, v in var.instance.datasets.delimited_text : k => coalesce(v.name, try("${var.naming.data_factory_dataset_delimited_text}-${k}", k)) },
+    { for k, v in var.instance.datasets.http : k => coalesce(v.name, try("${var.naming.data_factory_dataset_http}-${k}", k)) },
+    { for k, v in var.instance.datasets.json : k => coalesce(v.name, try("${var.naming.data_factory_dataset_json}-${k}", k)) },
+    { for k, v in var.instance.datasets.mysql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_mysql}-${k}", k)) },
+    { for k, v in var.instance.datasets.parquet : k => coalesce(v.name, try("${var.naming.data_factory_dataset_parquet}-${k}", k)) },
+    { for k, v in var.instance.datasets.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_postgresql}-${k}", k)) },
+    { for k, v in var.instance.datasets.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_dataset_snowflake}-${k}", k)) },
+    { for k, v in var.instance.datasets.sql_server_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_sql_server_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.custom : k => coalesce(v.name, try("${var.naming.data_factory_custom_dataset}-${k}", k)) },
+  )[dataset.value.name], dataset.value.name)
           parameters = dataset.value.parameters
         }
       }
@@ -1512,7 +2403,7 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "flowlet" {
         for_each = lookup(sink.value, "flowlet", null) != null ? [sink.value.flowlet] : []
         content {
-          name               = flowlet.value.name
+          name               = contains(keys(var.instance.flowlet_data_flows), flowlet.value.name) ? coalesce(var.instance.flowlet_data_flows[flowlet.value.name].name, try("${var.naming.data_factory_flowlet_data_flow}-${flowlet.value.name}", flowlet.value.name)) : flowlet.value.name
           dataset_parameters = flowlet.value.dataset_parameters
           parameters         = flowlet.value.parameters
         }
@@ -1521,7 +2412,31 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "schema_linked_service" {
         for_each = lookup(sink.value, "schema_linked_service", null) != null ? [sink.value.schema_linked_service] : []
         content {
-          name       = schema_linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[schema_linked_service.value.name], schema_linked_service.value.name)
           parameters = schema_linked_service.value.parameters
         }
       }
@@ -1529,7 +2444,31 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "rejected_linked_service" {
         for_each = lookup(sink.value, "rejected_linked_service", null) != null ? [sink.value.rejected_linked_service] : []
         content {
-          name       = rejected_linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[rejected_linked_service.value.name], rejected_linked_service.value.name)
           parameters = rejected_linked_service.value.parameters
         }
       }
@@ -1545,7 +2484,31 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "linked_service" {
         for_each = lookup(transformation.value, "linked_service", null) != null ? [transformation.value.linked_service] : []
         content {
-          name       = linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[linked_service.value.name], linked_service.value.name)
           parameters = linked_service.value.parameters
         }
       }
@@ -1553,7 +2516,21 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "dataset" {
         for_each = lookup(transformation.value, "dataset", null) != null ? [transformation.value.dataset] : []
         content {
-          name       = dataset.value.name
+          name       = try(merge(
+    { for k, v in var.instance.datasets.azure_blob : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_blob}-${k}", k)) },
+    { for k, v in var.instance.datasets.azure_sql_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_sql_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.binary : k => coalesce(v.name, try("${var.naming.data_factory_dataset_binary}-${k}", k)) },
+    { for k, v in var.instance.datasets.cosmosdb_sqlapi : k => coalesce(v.name, try("${var.naming.data_factory_dataset_cosmosdb_sqlapi}-${k}", k)) },
+    { for k, v in var.instance.datasets.delimited_text : k => coalesce(v.name, try("${var.naming.data_factory_dataset_delimited_text}-${k}", k)) },
+    { for k, v in var.instance.datasets.http : k => coalesce(v.name, try("${var.naming.data_factory_dataset_http}-${k}", k)) },
+    { for k, v in var.instance.datasets.json : k => coalesce(v.name, try("${var.naming.data_factory_dataset_json}-${k}", k)) },
+    { for k, v in var.instance.datasets.mysql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_mysql}-${k}", k)) },
+    { for k, v in var.instance.datasets.parquet : k => coalesce(v.name, try("${var.naming.data_factory_dataset_parquet}-${k}", k)) },
+    { for k, v in var.instance.datasets.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_postgresql}-${k}", k)) },
+    { for k, v in var.instance.datasets.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_dataset_snowflake}-${k}", k)) },
+    { for k, v in var.instance.datasets.sql_server_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_sql_server_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.custom : k => coalesce(v.name, try("${var.naming.data_factory_custom_dataset}-${k}", k)) },
+  )[dataset.value.name], dataset.value.name)
           parameters = dataset.value.parameters
         }
       }
@@ -1561,7 +2538,7 @@ resource "azurerm_data_factory_data_flow" "this" {
       dynamic "flowlet" {
         for_each = lookup(transformation.value, "flowlet", null) != null ? [transformation.value.flowlet] : []
         content {
-          name               = flowlet.value.name
+          name               = contains(keys(var.instance.flowlet_data_flows), flowlet.value.name) ? coalesce(var.instance.flowlet_data_flows[flowlet.value.name].name, try("${var.naming.data_factory_flowlet_data_flow}-${flowlet.value.name}", flowlet.value.name)) : flowlet.value.name
           dataset_parameters = flowlet.value.dataset_parameters
           parameters         = flowlet.value.parameters
         }
@@ -1573,7 +2550,7 @@ resource "azurerm_data_factory_data_flow" "this" {
 resource "azurerm_data_factory_flowlet_data_flow" "this" {
   for_each = var.instance.flowlet_data_flows
 
-  name            = coalesce(each.value.name, each.key)
+  name            = coalesce(each.value.name, try("${var.naming.data_factory_flowlet_data_flow}-${each.key}", each.key))
   data_factory_id = azurerm_data_factory.this.id
   description     = each.value.description
   folder          = each.value.folder
@@ -1590,7 +2567,31 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "linked_service" {
         for_each = lookup(source.value, "linked_service", null) != null ? [source.value.linked_service] : []
         content {
-          name       = linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[linked_service.value.name], linked_service.value.name)
           parameters = linked_service.value.parameters
         }
       }
@@ -1598,7 +2599,21 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "dataset" {
         for_each = lookup(source.value, "dataset", null) != null ? [source.value.dataset] : []
         content {
-          name       = dataset.value.name
+          name       = try(merge(
+    { for k, v in var.instance.datasets.azure_blob : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_blob}-${k}", k)) },
+    { for k, v in var.instance.datasets.azure_sql_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_sql_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.binary : k => coalesce(v.name, try("${var.naming.data_factory_dataset_binary}-${k}", k)) },
+    { for k, v in var.instance.datasets.cosmosdb_sqlapi : k => coalesce(v.name, try("${var.naming.data_factory_dataset_cosmosdb_sqlapi}-${k}", k)) },
+    { for k, v in var.instance.datasets.delimited_text : k => coalesce(v.name, try("${var.naming.data_factory_dataset_delimited_text}-${k}", k)) },
+    { for k, v in var.instance.datasets.http : k => coalesce(v.name, try("${var.naming.data_factory_dataset_http}-${k}", k)) },
+    { for k, v in var.instance.datasets.json : k => coalesce(v.name, try("${var.naming.data_factory_dataset_json}-${k}", k)) },
+    { for k, v in var.instance.datasets.mysql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_mysql}-${k}", k)) },
+    { for k, v in var.instance.datasets.parquet : k => coalesce(v.name, try("${var.naming.data_factory_dataset_parquet}-${k}", k)) },
+    { for k, v in var.instance.datasets.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_postgresql}-${k}", k)) },
+    { for k, v in var.instance.datasets.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_dataset_snowflake}-${k}", k)) },
+    { for k, v in var.instance.datasets.sql_server_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_sql_server_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.custom : k => coalesce(v.name, try("${var.naming.data_factory_custom_dataset}-${k}", k)) },
+  )[dataset.value.name], dataset.value.name)
           parameters = dataset.value.parameters
         }
       }
@@ -1606,7 +2621,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "flowlet" {
         for_each = lookup(source.value, "flowlet", null) != null ? [source.value.flowlet] : []
         content {
-          name               = flowlet.value.name
+          name               = contains(keys(var.instance.flowlet_data_flows), flowlet.value.name) ? coalesce(var.instance.flowlet_data_flows[flowlet.value.name].name, try("${var.naming.data_factory_flowlet_data_flow}-${flowlet.value.name}", flowlet.value.name)) : flowlet.value.name
           dataset_parameters = flowlet.value.dataset_parameters
           parameters         = flowlet.value.parameters
         }
@@ -1615,7 +2630,31 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "schema_linked_service" {
         for_each = lookup(source.value, "schema_linked_service", null) != null ? [source.value.schema_linked_service] : []
         content {
-          name       = schema_linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[schema_linked_service.value.name], schema_linked_service.value.name)
           parameters = schema_linked_service.value.parameters
         }
       }
@@ -1623,7 +2662,31 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "rejected_linked_service" {
         for_each = lookup(source.value, "rejected_linked_service", null) != null ? [source.value.rejected_linked_service] : []
         content {
-          name       = rejected_linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[rejected_linked_service.value.name], rejected_linked_service.value.name)
           parameters = rejected_linked_service.value.parameters
         }
       }
@@ -1639,7 +2702,31 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "linked_service" {
         for_each = lookup(sink.value, "linked_service", null) != null ? [sink.value.linked_service] : []
         content {
-          name       = linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[linked_service.value.name], linked_service.value.name)
           parameters = linked_service.value.parameters
         }
       }
@@ -1647,7 +2734,21 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "dataset" {
         for_each = lookup(sink.value, "dataset", null) != null ? [sink.value.dataset] : []
         content {
-          name       = dataset.value.name
+          name       = try(merge(
+    { for k, v in var.instance.datasets.azure_blob : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_blob}-${k}", k)) },
+    { for k, v in var.instance.datasets.azure_sql_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_sql_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.binary : k => coalesce(v.name, try("${var.naming.data_factory_dataset_binary}-${k}", k)) },
+    { for k, v in var.instance.datasets.cosmosdb_sqlapi : k => coalesce(v.name, try("${var.naming.data_factory_dataset_cosmosdb_sqlapi}-${k}", k)) },
+    { for k, v in var.instance.datasets.delimited_text : k => coalesce(v.name, try("${var.naming.data_factory_dataset_delimited_text}-${k}", k)) },
+    { for k, v in var.instance.datasets.http : k => coalesce(v.name, try("${var.naming.data_factory_dataset_http}-${k}", k)) },
+    { for k, v in var.instance.datasets.json : k => coalesce(v.name, try("${var.naming.data_factory_dataset_json}-${k}", k)) },
+    { for k, v in var.instance.datasets.mysql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_mysql}-${k}", k)) },
+    { for k, v in var.instance.datasets.parquet : k => coalesce(v.name, try("${var.naming.data_factory_dataset_parquet}-${k}", k)) },
+    { for k, v in var.instance.datasets.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_postgresql}-${k}", k)) },
+    { for k, v in var.instance.datasets.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_dataset_snowflake}-${k}", k)) },
+    { for k, v in var.instance.datasets.sql_server_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_sql_server_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.custom : k => coalesce(v.name, try("${var.naming.data_factory_custom_dataset}-${k}", k)) },
+  )[dataset.value.name], dataset.value.name)
           parameters = dataset.value.parameters
         }
       }
@@ -1655,7 +2756,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "flowlet" {
         for_each = lookup(sink.value, "flowlet", null) != null ? [sink.value.flowlet] : []
         content {
-          name               = flowlet.value.name
+          name               = contains(keys(var.instance.flowlet_data_flows), flowlet.value.name) ? coalesce(var.instance.flowlet_data_flows[flowlet.value.name].name, try("${var.naming.data_factory_flowlet_data_flow}-${flowlet.value.name}", flowlet.value.name)) : flowlet.value.name
           dataset_parameters = flowlet.value.dataset_parameters
           parameters         = flowlet.value.parameters
         }
@@ -1664,7 +2765,31 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "schema_linked_service" {
         for_each = lookup(sink.value, "schema_linked_service", null) != null ? [sink.value.schema_linked_service] : []
         content {
-          name       = schema_linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[schema_linked_service.value.name], schema_linked_service.value.name)
           parameters = schema_linked_service.value.parameters
         }
       }
@@ -1672,7 +2797,31 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "rejected_linked_service" {
         for_each = lookup(sink.value, "rejected_linked_service", null) != null ? [sink.value.rejected_linked_service] : []
         content {
-          name       = rejected_linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[rejected_linked_service.value.name], rejected_linked_service.value.name)
           parameters = rejected_linked_service.value.parameters
         }
       }
@@ -1688,7 +2837,31 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "linked_service" {
         for_each = lookup(transformation.value, "linked_service", null) != null ? [transformation.value.linked_service] : []
         content {
-          name       = linked_service.value.name
+          name       = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[linked_service.value.name], linked_service.value.name)
           parameters = linked_service.value.parameters
         }
       }
@@ -1696,7 +2869,21 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "dataset" {
         for_each = lookup(transformation.value, "dataset", null) != null ? [transformation.value.dataset] : []
         content {
-          name       = dataset.value.name
+          name       = try(merge(
+    { for k, v in var.instance.datasets.azure_blob : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_blob}-${k}", k)) },
+    { for k, v in var.instance.datasets.azure_sql_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_azure_sql_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.binary : k => coalesce(v.name, try("${var.naming.data_factory_dataset_binary}-${k}", k)) },
+    { for k, v in var.instance.datasets.cosmosdb_sqlapi : k => coalesce(v.name, try("${var.naming.data_factory_dataset_cosmosdb_sqlapi}-${k}", k)) },
+    { for k, v in var.instance.datasets.delimited_text : k => coalesce(v.name, try("${var.naming.data_factory_dataset_delimited_text}-${k}", k)) },
+    { for k, v in var.instance.datasets.http : k => coalesce(v.name, try("${var.naming.data_factory_dataset_http}-${k}", k)) },
+    { for k, v in var.instance.datasets.json : k => coalesce(v.name, try("${var.naming.data_factory_dataset_json}-${k}", k)) },
+    { for k, v in var.instance.datasets.mysql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_mysql}-${k}", k)) },
+    { for k, v in var.instance.datasets.parquet : k => coalesce(v.name, try("${var.naming.data_factory_dataset_parquet}-${k}", k)) },
+    { for k, v in var.instance.datasets.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_dataset_postgresql}-${k}", k)) },
+    { for k, v in var.instance.datasets.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_dataset_snowflake}-${k}", k)) },
+    { for k, v in var.instance.datasets.sql_server_table : k => coalesce(v.name, try("${var.naming.data_factory_dataset_sql_server_table}-${k}", k)) },
+    { for k, v in var.instance.datasets.custom : k => coalesce(v.name, try("${var.naming.data_factory_custom_dataset}-${k}", k)) },
+  )[dataset.value.name], dataset.value.name)
           parameters = dataset.value.parameters
         }
       }
@@ -1704,7 +2891,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
       dynamic "flowlet" {
         for_each = lookup(transformation.value, "flowlet", null) != null ? [transformation.value.flowlet] : []
         content {
-          name               = flowlet.value.name
+          name               = contains(keys(var.instance.flowlet_data_flows), flowlet.value.name) ? coalesce(var.instance.flowlet_data_flows[flowlet.value.name].name, try("${var.naming.data_factory_flowlet_data_flow}-${flowlet.value.name}", flowlet.value.name)) : flowlet.value.name
           dataset_parameters = flowlet.value.dataset_parameters
           parameters         = flowlet.value.parameters
         }
@@ -1717,7 +2904,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "this" {
 resource "azurerm_data_factory_integration_runtime_azure" "this" {
   for_each = var.instance.integration_runtimes.azure
 
-  name                    = coalesce(each.value.name, each.key)
+  name                    = coalesce(each.value.name, try("${var.naming.data_factory_integration_runtime_azure}-${each.key}", each.key))
   data_factory_id         = azurerm_data_factory.this.id
   location                = each.value.location
   compute_type            = each.value.compute_type
@@ -1731,12 +2918,15 @@ resource "azurerm_data_factory_integration_runtime_azure" "this" {
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
   for_each = var.instance.integration_runtimes.azure_ssis
 
-  name                             = coalesce(each.value.name, each.key)
+  name                             = coalesce(each.value.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${each.key}", each.key))
   data_factory_id                  = azurerm_data_factory.this.id
   location                         = each.value.location
   node_size                        = each.value.node_size
   number_of_nodes                  = each.value.number_of_nodes
-  credential_name                  = each.value.credential_name
+  credential_name                  = try(merge(
+    { for k, v in var.instance.credentials.service_principal : k => coalesce(v.name, try("${var.naming.data_factory_credential_service_principal}-${k}", k)) },
+    { for k, v in var.instance.credentials.user_managed_identity : k => coalesce(v.name, try("${var.naming.data_factory_credential_user_managed_identity}-${k}", k)) },
+  )[each.value.credential_name], each.value.credential_name)
   edition                          = each.value.edition
   license_type                     = each.value.license_type
   max_parallel_executions_per_node = each.value.max_parallel_executions_per_node
@@ -1786,7 +2976,31 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
           dynamic "key_vault_password" {
             for_each = lookup(command_key.value, "key_vault_password", null) != null ? [command_key.value.key_vault_password] : []
             content {
-              linked_service_name = key_vault_password.value.linked_service_name
+              linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_password.value.linked_service_name], key_vault_password.value.linked_service_name)
               secret_name         = key_vault_password.value.secret_name
               secret_version      = key_vault_password.value.secret_version
               parameters          = key_vault_password.value.parameters
@@ -1804,7 +3018,31 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
           dynamic "key_vault_license" {
             for_each = lookup(component.value, "key_vault_license", null) != null ? [component.value.key_vault_license] : []
             content {
-              linked_service_name = key_vault_license.value.linked_service_name
+              linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[key_vault_license.value.linked_service_name], key_vault_license.value.linked_service_name)
               secret_name         = key_vault_license.value.secret_name
               secret_version      = key_vault_license.value.secret_version
               parameters          = key_vault_license.value.parameters
@@ -1819,15 +3057,67 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
     for_each = lookup(each.value, "package_store", null) != null ? [each.value.package_store] : []
     content {
       name                = package_store.value.name
-      linked_service_name = package_store.value.linked_service_name
+      linked_service_name = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[package_store.value.linked_service_name], package_store.value.linked_service_name)
     }
   }
 
   dynamic "proxy" {
     for_each = lookup(each.value, "proxy", null) != null ? [each.value.proxy] : []
     content {
-      self_hosted_integration_runtime_name = proxy.value.self_hosted_integration_runtime_name
-      staging_storage_linked_service_name  = proxy.value.staging_storage_linked_service_name
+      self_hosted_integration_runtime_name = try(merge(
+    { for k, v in var.instance.integration_runtimes.azure : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.azure_ssis : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_azure_ssis}-${k}", k)) },
+    { for k, v in var.instance.integration_runtimes.self_hosted : k => coalesce(v.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${k}", k)) },
+  )[proxy.value.self_hosted_integration_runtime_name], proxy.value.self_hosted_integration_runtime_name)
+      staging_storage_linked_service_name  = try(merge(
+    { for k, v in var.instance.linked_services.azure_blob_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_blob_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_databricks : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_databricks}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_file_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_file_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_function : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_function}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_search : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_search}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_sql_database : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_sql_database}-${k}", k)) },
+    { for k, v in var.instance.linked_services.azure_table_storage : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_azure_table_storage}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb}-${k}", k)) },
+    { for k, v in var.instance.linked_services.cosmosdb_mongoapi : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_cosmosdb_mongoapi}-${k}", k)) },
+    { for k, v in var.instance.linked_services.data_lake_storage_gen2 : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_data_lake_storage_gen2}-${k}", k)) },
+    { for k, v in var.instance.linked_services.key_vault : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_key_vault}-${k}", k)) },
+    { for k, v in var.instance.linked_services.kusto : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_kusto}-${k}", k)) },
+    { for k, v in var.instance.linked_services.mysql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_mysql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odata : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odata}-${k}", k)) },
+    { for k, v in var.instance.linked_services.odbc : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_odbc}-${k}", k)) },
+    { for k, v in var.instance.linked_services.postgresql : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_postgresql}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sftp : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sftp}-${k}", k)) },
+    { for k, v in var.instance.linked_services.snowflake : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_snowflake}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_managed_instance : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_managed_instance}-${k}", k)) },
+    { for k, v in var.instance.linked_services.sql_server : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_sql_server}-${k}", k)) },
+    { for k, v in var.instance.linked_services.synapse : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_synapse}-${k}", k)) },
+    { for k, v in var.instance.linked_services.web : k => coalesce(v.name, try("${var.naming.data_factory_linked_service_web}-${k}", k)) },
+    { for k, v in var.instance.linked_services.custom : k => coalesce(v.name, try("${var.naming.data_factory_linked_custom_service}-${k}", k)) },
+  )[proxy.value.staging_storage_linked_service_name], proxy.value.staging_storage_linked_service_name)
       path                                 = proxy.value.path
     }
   }
@@ -1855,7 +3145,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
 resource "azurerm_data_factory_integration_runtime_self_hosted" "this" {
   for_each = var.instance.integration_runtimes.self_hosted
 
-  name                                         = coalesce(each.value.name, each.key)
+  name                                         = coalesce(each.value.name, try("${var.naming.data_factory_integration_runtime_self_hosted}-${each.key}", each.key))
   data_factory_id                              = azurerm_data_factory.this.id
   description                                  = each.value.description
   self_contained_interactive_authoring_enabled = each.value.self_contained_interactive_authoring_enabled
@@ -1872,7 +3162,7 @@ resource "azurerm_data_factory_integration_runtime_self_hosted" "this" {
 resource "azurerm_data_factory_pipeline" "this" {
   for_each = var.instance.pipelines
 
-  name                           = coalesce(each.value.name, each.key)
+  name                           = coalesce(each.value.name, try("${var.naming.data_factory_pipeline}-${each.key}", each.key))
   data_factory_id                = azurerm_data_factory.this.id
   description                    = each.value.description
   annotations                    = each.value.annotations
@@ -1929,7 +3219,7 @@ resource "azurerm_data_factory_pipeline" "this" {
 resource "azurerm_data_factory_trigger_blob_event" "this" {
   for_each = var.instance.triggers.blob_event
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_trigger_blob_event}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
   storage_account_id    = each.value.storage_account_id
   events                = each.value.events
@@ -1944,7 +3234,7 @@ resource "azurerm_data_factory_trigger_blob_event" "this" {
   dynamic "pipeline" {
     for_each = each.value.pipelines != null ? each.value.pipelines : []
     content {
-      name       = pipeline.value.name
+      name       = contains(keys(var.instance.pipelines), pipeline.value.name) ? coalesce(var.instance.pipelines[pipeline.value.name].name, try("${var.naming.data_factory_pipeline}-${pipeline.value.name}", pipeline.value.name)) : pipeline.value.name
       parameters = pipeline.value.parameters != null ? pipeline.value.parameters : {}
     }
   }
@@ -1953,7 +3243,7 @@ resource "azurerm_data_factory_trigger_blob_event" "this" {
 resource "azurerm_data_factory_trigger_schedule" "this" {
   for_each = var.instance.triggers.schedule
 
-  name                = coalesce(each.value.name, each.key)
+  name                = coalesce(each.value.name, try("${var.naming.data_factory_trigger_schedule}-${each.key}", each.key))
   data_factory_id     = azurerm_data_factory.this.id
   frequency           = each.value.frequency
   interval            = each.value.interval
@@ -1963,13 +3253,13 @@ resource "azurerm_data_factory_trigger_schedule" "this" {
   description         = each.value.description
   annotations         = each.value.annotations
   activated           = each.value.activated
-  pipeline_name       = each.value.pipeline_name
+  pipeline_name       = contains(keys(var.instance.pipelines), each.value.pipeline_name) ? coalesce(var.instance.pipelines[each.value.pipeline_name].name, try("${var.naming.data_factory_pipeline}-${each.value.pipeline_name}", each.value.pipeline_name)) : each.value.pipeline_name
   pipeline_parameters = each.value.pipeline_parameters
 
   dynamic "pipeline" {
     for_each = each.value.pipelines != null ? each.value.pipelines : []
     content {
-      name       = pipeline.value.name
+      name       = contains(keys(var.instance.pipelines), pipeline.value.name) ? coalesce(var.instance.pipelines[pipeline.value.name].name, try("${var.naming.data_factory_pipeline}-${pipeline.value.name}", pipeline.value.name)) : pipeline.value.name
       parameters = pipeline.value.parameters != null ? pipeline.value.parameters : {}
     }
   }
@@ -1996,7 +3286,7 @@ resource "azurerm_data_factory_trigger_schedule" "this" {
 resource "azurerm_data_factory_trigger_tumbling_window" "this" {
   for_each = var.instance.triggers.tumbling_window
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_trigger_tumbling_window}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
   frequency             = each.value.frequency
   interval              = each.value.interval
@@ -2012,7 +3302,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "this" {
   dynamic "pipeline" {
     for_each = each.value.pipelines != null ? each.value.pipelines : []
     content {
-      name       = pipeline.value.name
+      name       = contains(keys(var.instance.pipelines), pipeline.value.name) ? coalesce(var.instance.pipelines[pipeline.value.name].name, try("${var.naming.data_factory_pipeline}-${pipeline.value.name}", pipeline.value.name)) : pipeline.value.name
       parameters = pipeline.value.parameters != null ? pipeline.value.parameters : {}
     }
   }
@@ -2038,7 +3328,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "this" {
 resource "azurerm_data_factory_trigger_custom_event" "this" {
   for_each = var.instance.triggers.custom_event
 
-  name                  = coalesce(each.value.name, each.key)
+  name                  = coalesce(each.value.name, try("${var.naming.data_factory_trigger_custom_event}-${each.key}", each.key))
   data_factory_id       = azurerm_data_factory.this.id
   eventgrid_topic_id    = each.value.eventgrid_topic_id
   events                = each.value.events
@@ -2052,7 +3342,7 @@ resource "azurerm_data_factory_trigger_custom_event" "this" {
   dynamic "pipeline" {
     for_each = each.value.pipelines != null ? each.value.pipelines : []
     content {
-      name       = pipeline.value.name
+      name       = contains(keys(var.instance.pipelines), pipeline.value.name) ? coalesce(var.instance.pipelines[pipeline.value.name].name, try("${var.naming.data_factory_pipeline}-${pipeline.value.name}", pipeline.value.name)) : pipeline.value.name
       parameters = pipeline.value.parameters != null ? pipeline.value.parameters : {}
     }
   }
@@ -2062,7 +3352,7 @@ resource "azurerm_data_factory_trigger_custom_event" "this" {
 resource "azurerm_data_factory_managed_private_endpoint" "this" {
   for_each = var.instance.managed_private_endpoints
 
-  name               = coalesce(each.value.name, each.key)
+  name               = coalesce(each.value.name, try("${var.naming.data_factory_managed_private_endpoint}-${each.key}", each.key))
   data_factory_id    = azurerm_data_factory.this.id
   target_resource_id = each.value.target_resource_id
   subresource_name   = each.value.subresource_name

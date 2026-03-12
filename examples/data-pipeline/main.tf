@@ -1,6 +1,6 @@
 module "naming" {
   source  = "cloudnationhq/naming/azure"
-  version = "~> 0.1"
+  version = "~> 0.27"
 
   suffix = ["demo", "dev"]
 }
@@ -29,8 +29,11 @@ module "storage" {
 }
 
 module "adf" {
-  source  = "cloudnationhq/adf/azure"
-  version = "~> 1.0"
+  # source  = "cloudnationhq/adf/azure"
+  # version = "~> 1.0"
+  source = "../../"
+
+  naming = local.naming
 
   instance = {
     name                = module.naming.data_factory.name_unique
@@ -44,7 +47,7 @@ module "adf" {
     linked_services = {
       azure_blob_storage = {
         blob1 = {
-          name                 = "LinkedService_BlobStorage"
+          linked_service_name = "LinkedService_BlobStorage"
           service_endpoint     = module.storage.account.primary_blob_endpoint
           use_managed_identity = true
         }
@@ -52,7 +55,7 @@ module "adf" {
 
       sql_server = {
         sql1 = {
-          name              = "LinkedService_SqlServer"
+          linked_service_name = "LinkedService_SqlServer"
           connection_string = "Server=tcp:myserver.database.windows.net,1433;Initial Catalog=mydb;Persist Security Info=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
         }
       }
@@ -61,7 +64,6 @@ module "adf" {
     datasets = {
       azure_blob = {
         blob_input = {
-          name                = "BlobDataset_Input"
           linked_service_name = "LinkedService_BlobStorage"
           path                = "input"
           filename            = "data.csv"
@@ -69,7 +71,6 @@ module "adf" {
         }
 
         blob_output = {
-          name                = "BlobDataset_Output"
           linked_service_name = "LinkedService_BlobStorage"
           path                = "output"
           filename            = "processed.csv"
@@ -79,7 +80,6 @@ module "adf" {
 
       delimited_text = {
         csv_data = {
-          name                = "DelimitedText_Source"
           linked_service_name = "LinkedService_BlobStorage"
           column_delimiter    = ","
           row_delimiter       = "\n"
@@ -96,7 +96,6 @@ module "adf" {
 
       sql_server_table = {
         sql_table = {
-          name                = "SqlDataset_Target"
           linked_service_name = "LinkedService_SqlServer"
           table_name          = "dbo.TargetTable"
           folder              = "datasets"
@@ -106,7 +105,6 @@ module "adf" {
 
     pipelines = {
       copy_pipeline = {
-        name        = "CopyDataPipeline"
         description = "Copy data from blob to SQL"
         folder      = "pipelines"
         activities = [
