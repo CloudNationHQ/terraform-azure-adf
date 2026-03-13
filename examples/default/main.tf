@@ -16,6 +16,7 @@ module "rg" {
     }
   }
 }
+
 module "adf" {
   source  = "cloudnationhq/adf/azure"
   version = "~> 1.0"

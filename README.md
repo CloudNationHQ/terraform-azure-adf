@@ -118,18 +118,15 @@ object({
     customer_managed_key_id          = optional(string)
     customer_managed_key_identity_id = optional(string)
     tags                             = optional(map(string))
-
     global_parameters = optional(list(object({
       name  = string
       type  = string
       value = any
     })), [])
-
     identity = optional(object({
       type         = optional(string, "SystemAssigned")
       identity_ids = optional(list(string))
     }))
-
     vsts_configuration = optional(object({
       account_name       = string
       branch_name        = string
@@ -139,7 +136,6 @@ object({
       tenant_id          = optional(string)
       publishing_enabled = optional(bool)
     }))
-
     github_configuration = optional(object({
       account_name       = string
       branch_name        = string
@@ -148,7 +144,6 @@ object({
       root_folder        = string
       publishing_enabled = optional(bool)
     }))
-
     credentials = optional(object({
       service_principal = optional(map(object({
         name                 = optional(string)
@@ -156,14 +151,12 @@ object({
         tenant_id            = string
         description          = optional(string)
         annotations          = optional(list(string))
-
         service_principal_key = optional(object({
           linked_service_name = string
           secret_name         = string
           secret_version      = optional(string)
         }))
       })), {})
-
       user_managed_identity = optional(map(object({
         name        = optional(string)
         identity_id = string
@@ -171,7 +164,6 @@ object({
         annotations = optional(list(string))
       })), {})
     }), {})
-
     linked_services = optional(object({
       azure_blob_storage = optional(map(object({
         name                     = optional(string)
@@ -188,13 +180,11 @@ object({
         service_principal_key    = optional(string)
         storage_kind             = optional(string)
         tenant_id                = optional(string)
-
         sas_token_linked_key_vault_key = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
       })), {})
-
       azure_sql_database = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -208,18 +198,15 @@ object({
         service_principal_key    = optional(string)
         tenant_id                = optional(string)
         credential_name          = optional(string)
-
         key_vault_password = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
-
         key_vault_connection_string = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
       })), {})
-
       azure_table_storage = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -229,7 +216,6 @@ object({
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
       })), {})
-
       azure_databricks = optional(map(object({
         name                     = optional(string)
         adb_domain               = string
@@ -241,19 +227,16 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         key_vault_password = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
-
         instance_pool = optional(object({
           instance_pool_id      = string
           cluster_version       = string
           min_number_of_workers = optional(number)
           max_number_of_workers = optional(number)
         }))
-
         new_cluster_config = optional(object({
           cluster_version             = string
           node_type                   = string
@@ -267,7 +250,6 @@ object({
           init_scripts                = optional(list(string))
         }))
       })), {})
-
       azure_file_storage = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -280,13 +262,11 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         key_vault_password = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
       })), {})
-
       azure_function = optional(map(object({
         name                     = optional(string)
         url                      = string
@@ -296,13 +276,11 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         key_vault_key = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
       })), {})
-
       azure_search = optional(map(object({
         name                     = optional(string)
         url                      = string
@@ -313,7 +291,6 @@ object({
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
       })), {})
-
       cosmosdb = optional(map(object({
         name                     = optional(string)
         account_endpoint         = string
@@ -326,7 +303,6 @@ object({
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
       })), {})
-
       cosmosdb_mongoapi = optional(map(object({
         name                           = optional(string)
         connection_string              = string
@@ -338,7 +314,6 @@ object({
         parameters                     = optional(map(string))
         additional_properties          = optional(map(string))
       })), {})
-
       data_lake_storage_gen2 = optional(map(object({
         name                     = optional(string)
         url                      = string
@@ -353,7 +328,6 @@ object({
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
       })), {})
-
       key_vault = optional(map(object({
         name                     = optional(string)
         key_vault_id             = string
@@ -363,7 +337,6 @@ object({
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
       })), {})
-
       kusto = optional(map(object({
         name                     = optional(string)
         kusto_endpoint           = string
@@ -378,7 +351,6 @@ object({
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
       })), {})
-
       mysql = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -388,7 +360,6 @@ object({
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
       })), {})
-
       odata = optional(map(object({
         name                     = optional(string)
         url                      = string
@@ -397,13 +368,11 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         basic_authentication = optional(object({
           username = string
           password = string
         }))
       })), {})
-
       odbc = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -412,13 +381,11 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         basic_authentication = optional(object({
           username = string
           password = string
         }))
       })), {})
-
       postgresql = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -428,7 +395,6 @@ object({
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
       })), {})
-
       sftp = optional(map(object({
         name                     = optional(string)
         authentication_type      = string
@@ -445,23 +411,19 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         key_vault_password = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
-
         key_vault_private_key_content_base64 = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
-
         key_vault_private_key_passphrase = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
       })), {})
-
       snowflake = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -470,13 +432,11 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         key_vault_password = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
       })), {})
-
       sql_managed_instance = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -488,18 +448,15 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         key_vault_connection_string = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
-
         key_vault_password = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
       })), {})
-
       sql_server = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -509,18 +466,15 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         key_vault_connection_string = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
-
         key_vault_password = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
       })), {})
-
       synapse = optional(map(object({
         name                     = optional(string)
         connection_string        = string
@@ -529,13 +483,11 @@ object({
         annotations              = optional(list(string))
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
-
         key_vault_password = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
       })), {})
-
       web = optional(map(object({
         name                     = optional(string)
         url                      = string
@@ -548,7 +500,6 @@ object({
         parameters               = optional(map(string))
         additional_properties    = optional(map(string))
       })), {})
-
       custom = optional(map(object({
         name                  = optional(string)
         type                  = string
@@ -557,14 +508,12 @@ object({
         annotations           = optional(list(string))
         parameters            = optional(map(string))
         additional_properties = optional(map(string))
-
         integration_runtime = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
       })), {})
     }), {})
-
     datasets = optional(object({
       azure_blob = optional(map(object({
         name                     = optional(string)
@@ -578,14 +527,12 @@ object({
         parameters               = optional(map(string))
         folder                   = optional(string)
         additional_properties    = optional(map(string))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       azure_sql_table = optional(map(object({
         name                  = optional(string)
         linked_service_id     = string
@@ -595,14 +542,12 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       binary = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -611,7 +556,6 @@ object({
         annotations           = optional(list(string))
         parameters            = optional(map(string))
         additional_properties = optional(map(string))
-
         azure_blob_storage_location = optional(object({
           container                 = string
           path                      = optional(string)
@@ -620,7 +564,6 @@ object({
           dynamic_path_enabled      = optional(bool)
           dynamic_filename_enabled  = optional(bool)
         }))
-
         http_server_location = optional(object({
           relative_url             = string
           path                     = optional(string)
@@ -628,20 +571,17 @@ object({
           dynamic_path_enabled     = optional(bool)
           dynamic_filename_enabled = optional(bool)
         }))
-
         sftp_server_location = optional(object({
           path                     = string
           filename                 = optional(string)
           dynamic_path_enabled     = optional(bool)
           dynamic_filename_enabled = optional(bool)
         }))
-
         compression = optional(object({
           type  = string
           level = optional(string)
         }))
       })), {})
-
       cosmosdb_sqlapi = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -651,14 +591,12 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       delimited_text = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -676,7 +614,6 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         azure_blob_storage_location = optional(object({
           container                 = string
           path                      = optional(string)
@@ -685,7 +622,6 @@ object({
           dynamic_path_enabled      = optional(bool)
           dynamic_filename_enabled  = optional(bool)
         }))
-
         http_server_location = optional(object({
           relative_url             = string
           path                     = optional(string)
@@ -693,7 +629,6 @@ object({
           dynamic_path_enabled     = optional(bool)
           dynamic_filename_enabled = optional(bool)
         }))
-
         azure_blob_fs_location = optional(object({
           file_system                 = string
           path                        = optional(string)
@@ -702,14 +637,12 @@ object({
           dynamic_path_enabled        = optional(bool)
           dynamic_filename_enabled    = optional(bool)
         }))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       http = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -721,14 +654,12 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       json = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -738,7 +669,6 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         azure_blob_storage_location = optional(object({
           container                 = string
           path                      = optional(string)
@@ -747,7 +677,6 @@ object({
           dynamic_path_enabled      = optional(bool)
           dynamic_filename_enabled  = optional(bool)
         }))
-
         http_server_location = optional(object({
           relative_url             = string
           path                     = optional(string)
@@ -755,14 +684,12 @@ object({
           dynamic_path_enabled     = optional(bool)
           dynamic_filename_enabled = optional(bool)
         }))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       mysql = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -772,14 +699,12 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       parquet = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -790,7 +715,6 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         azure_blob_storage_location = optional(object({
           container                 = string
           path                      = optional(string)
@@ -799,7 +723,6 @@ object({
           dynamic_path_enabled      = optional(bool)
           dynamic_filename_enabled  = optional(bool)
         }))
-
         azure_blob_fs_location = optional(object({
           file_system                 = string
           path                        = optional(string)
@@ -808,7 +731,6 @@ object({
           dynamic_path_enabled        = optional(bool)
           dynamic_filename_enabled    = optional(bool)
         }))
-
         http_server_location = optional(object({
           relative_url             = string
           path                     = optional(string)
@@ -816,14 +738,12 @@ object({
           dynamic_path_enabled     = optional(bool)
           dynamic_filename_enabled = optional(bool)
         }))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       postgresql = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -833,14 +753,12 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       snowflake = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -851,7 +769,6 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         schema_column = optional(list(object({
           name      = string
           type      = optional(string)
@@ -859,7 +776,6 @@ object({
           scale     = optional(number)
         })))
       })), {})
-
       sql_server_table = optional(map(object({
         name                  = optional(string)
         linked_service_name   = string
@@ -869,14 +785,12 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         schema_column = optional(list(object({
           name        = string
           type        = optional(string)
           description = optional(string)
         })))
       })), {})
-
       custom = optional(map(object({
         name                  = optional(string)
         type                  = string
@@ -887,14 +801,12 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-
         linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
       })), {})
     }), {})
-
     data_flows = optional(map(object({
       name         = optional(string)
       description  = optional(string)
@@ -902,83 +814,67 @@ object({
       annotations  = optional(list(string))
       script       = optional(string)
       script_lines = optional(list(string))
-
       source = optional(list(object({
         name        = string
         description = optional(string)
-
         linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         dataset = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         flowlet = optional(object({
           name               = string
           parameters         = optional(map(string))
           dataset_parameters = optional(string)
         }))
-
         schema_linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         rejected_linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
       })))
-
       sink = optional(list(object({
         name        = string
         description = optional(string)
-
         linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         dataset = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         flowlet = optional(object({
           name               = string
           parameters         = optional(map(string))
           dataset_parameters = optional(string)
         }))
-
         schema_linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         rejected_linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
       })))
-
       transformation = optional(list(object({
         name        = string
         description = optional(string)
-
         linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         dataset = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         flowlet = optional(object({
           name               = string
           parameters         = optional(map(string))
@@ -986,7 +882,6 @@ object({
         }))
       })))
     })), {})
-
     flowlet_data_flows = optional(map(object({
       name         = optional(string)
       description  = optional(string)
@@ -994,83 +889,67 @@ object({
       annotations  = optional(list(string))
       script       = optional(string)
       script_lines = optional(list(string))
-
       source = optional(list(object({
         name        = string
         description = optional(string)
-
         linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         dataset = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         flowlet = optional(object({
           name               = string
           parameters         = optional(map(string))
           dataset_parameters = optional(string)
         }))
-
         schema_linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         rejected_linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
       })))
-
       sink = optional(list(object({
         name        = string
         description = optional(string)
-
         linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         dataset = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         flowlet = optional(object({
           name               = string
           parameters         = optional(map(string))
           dataset_parameters = optional(string)
         }))
-
         schema_linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         rejected_linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
       })))
-
       transformation = optional(list(object({
         name        = string
         description = optional(string)
-
         linked_service = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         dataset = optional(object({
           name       = string
           parameters = optional(map(string))
         }))
-
         flowlet = optional(object({
           name               = string
           parameters         = optional(map(string))
@@ -1078,7 +957,6 @@ object({
         }))
       })))
     })), {})
-
     integration_runtimes = optional(object({
       azure = optional(map(object({
         name                    = optional(string)
@@ -1090,7 +968,6 @@ object({
         virtual_network_enabled = optional(bool)
         description             = optional(string)
       })), {})
-
       azure_ssis = optional(map(object({
         name                             = optional(string)
         location                         = string
@@ -1101,14 +978,12 @@ object({
         license_type                     = optional(string)
         max_parallel_executions_per_node = optional(number)
         description                      = optional(string)
-
         vnet_integration = optional(object({
           vnet_id     = string
           subnet_name = string
           public_ips  = optional(list(string))
           subnet_id   = optional(string)
         }))
-
         catalog_info = optional(object({
           server_endpoint        = string
           administrator_login    = string
@@ -1117,26 +992,21 @@ object({
           elastic_pool_name      = optional(string)
           dual_standby_pair_name = optional(string)
         }))
-
         copy_compute_scale = optional(object({
           data_integration_unit = optional(number)
           time_to_live          = optional(number)
         }))
-
         custom_setup_script = optional(object({
           blob_container_uri = string
           sas_token          = string
         }))
-
         express_custom_setup = optional(object({
           environment        = optional(map(string))
           powershell_version = optional(string)
-
           command_key = optional(object({
             target_name = string
             user_name   = string
             password    = optional(string)
-
             key_vault_password = optional(object({
               linked_service_name = string
               secret_name         = string
@@ -1144,11 +1014,9 @@ object({
               parameters          = optional(map(string))
             }))
           }))
-
           component = optional(list(object({
             name    = string
             license = optional(string)
-
             key_vault_license = optional(object({
               linked_service_name = string
               secret_name         = string
@@ -1157,36 +1025,30 @@ object({
             }))
           })))
         }))
-
         package_store = optional(object({
           name                = string
           linked_service_name = string
         }))
-
         proxy = optional(object({
           self_hosted_integration_runtime_name = string
           staging_storage_linked_service_name  = string
           path                                 = optional(string)
         }))
-
         pipeline_external_compute_scale = optional(object({
           number_of_external_nodes = optional(number)
           number_of_pipeline_nodes = optional(number)
           time_to_live             = optional(number)
         }))
       })), {})
-
       self_hosted = optional(map(object({
         name                                         = optional(string)
         description                                  = optional(string)
         self_contained_interactive_authoring_enabled = optional(bool)
-
         rbac_authorization_config = optional(object({
           resource_id = string
         }))
       })), {})
     }), {})
-
     pipelines = optional(map(object({
       name                           = optional(string)
       activities                     = any
@@ -1198,7 +1060,6 @@ object({
       variables                      = optional(map(string))
       folder                         = optional(string)
     })), {})
-
     triggers = optional(object({
       blob_event = optional(map(object({
         name                  = optional(string)
@@ -1211,13 +1072,11 @@ object({
         annotations           = optional(list(string))
         activated             = optional(bool)
         additional_properties = optional(map(string))
-
         pipelines = optional(list(object({
           name       = string
           parameters = optional(map(string))
         })))
       })), {})
-
       schedule = optional(map(object({
         name                = optional(string)
         frequency           = string
@@ -1230,25 +1089,21 @@ object({
         activated           = optional(bool)
         pipeline_name       = optional(string)
         pipeline_parameters = optional(map(string))
-
         pipelines = optional(list(object({
           name       = string
           parameters = optional(map(string))
         })))
-
         schedule = optional(object({
           minutes       = optional(list(number))
           hours         = optional(list(number))
           days_of_week  = optional(list(string))
           days_of_month = optional(list(number))
-
           monthly = optional(object({
             weekday = string
             week    = number
           }))
         }))
       })), {})
-
       tumbling_window = optional(map(object({
         name                  = optional(string)
         frequency             = string
@@ -1261,24 +1116,20 @@ object({
         annotations           = optional(list(string))
         activated             = optional(bool)
         additional_properties = optional(map(string))
-
         pipelines = optional(list(object({
           name       = string
           parameters = optional(map(string))
         })))
-
         retry = optional(object({
           count    = optional(number)
           interval = optional(number)
         }))
-
         trigger_dependencies = optional(list(object({
           offset       = optional(string)
           size         = optional(string)
           trigger_name = optional(string)
         })))
       })), {})
-
       custom_event = optional(map(object({
         name                  = optional(string)
         eventgrid_topic_id    = string
@@ -1289,21 +1140,18 @@ object({
         annotations           = optional(list(string))
         activated             = optional(bool)
         additional_properties = optional(map(string))
-
         pipelines = optional(list(object({
           name       = string
           parameters = optional(map(string))
         })))
       })), {})
     }), {})
-
     managed_private_endpoints = optional(map(object({
       name               = optional(string)
       target_resource_id = string
       subresource_name   = string
       fqdns              = optional(list(string))
     })), {})
-
     customer_managed_key = optional(object({
       customer_managed_key_id   = string
       user_assigned_identity_id = optional(string)
@@ -1322,19 +1170,6 @@ Description: default azure region to be used.
 Type: `string`
 
 Default: `null`
-
-### <a name="input_naming"></a> [naming](#input\_naming)
-
-Description: contains naming convention
-
-Type:
-
-```hcl
-object({
-  })
-```
-
-Default: `{}`
 
 ### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
 
