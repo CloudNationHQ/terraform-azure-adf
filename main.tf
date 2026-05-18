@@ -117,19 +117,20 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "this" {
     local.integration_runtimes_name_map[each.value.integration_runtime_name], each.value.integration_runtime_name
   )
 
-  data_factory_id       = azurerm_data_factory.this.id
-  description           = each.value.description
-  annotations           = each.value.annotations
-  parameters            = each.value.parameters
-  additional_properties = each.value.additional_properties
-  use_managed_identity  = each.value.use_managed_identity
-  connection_string     = each.value.connection_string
-  sas_uri               = each.value.sas_uri
-  service_endpoint      = each.value.service_endpoint
-  service_principal_id  = each.value.service_principal_id
-  service_principal_key = each.value.service_principal_key
-  storage_kind          = each.value.storage_kind
-  tenant_id             = each.value.tenant_id
+  data_factory_id            = azurerm_data_factory.this.id
+  description                = each.value.description
+  annotations                = each.value.annotations
+  parameters                 = each.value.parameters
+  additional_properties      = each.value.additional_properties
+  use_managed_identity       = each.value.use_managed_identity
+  connection_string          = each.value.connection_string
+  connection_string_insecure = each.value.connection_string_insecure
+  sas_uri                    = each.value.sas_uri
+  service_endpoint           = each.value.service_endpoint
+  service_principal_id       = each.value.service_principal_id
+  service_principal_key      = each.value.service_principal_key
+  storage_kind               = each.value.storage_kind
+  tenant_id                  = each.value.tenant_id
 
   dynamic "sas_token_linked_key_vault_key" {
     for_each = lookup(each.value, "sas_token_linked_key_vault_key", null) != null ? [each.value.sas_token_linked_key_vault_key] : []
@@ -139,6 +140,28 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "this" {
         local.linked_services_name_map[sas_token_linked_key_vault_key.value.linked_service_name], sas_token_linked_key_vault_key.value.linked_service_name
       )
       secret_name = sas_token_linked_key_vault_key.value.secret_name
+    }
+  }
+
+  dynamic "service_principal_linked_key_vault_key" {
+    for_each = lookup(each.value, "service_principal_linked_key_vault_key", null) != null ? [each.value.service_principal_linked_key_vault_key] : []
+
+    content {
+      linked_service_name = try(
+        local.linked_services_name_map[service_principal_linked_key_vault_key.value.linked_service_name], service_principal_linked_key_vault_key.value.linked_service_name
+      )
+      secret_name = service_principal_linked_key_vault_key.value.secret_name
+    }
+  }
+
+  dynamic "key_vault_sas_token" {
+    for_each = lookup(each.value, "key_vault_sas_token", null) != null ? [each.value.key_vault_sas_token] : []
+
+    content {
+      linked_service_name = try(
+        local.linked_services_name_map[key_vault_sas_token.value.linked_service_name], key_vault_sas_token.value.linked_service_name
+      )
+      secret_name = key_vault_sas_token.value.secret_name
     }
   }
 }
@@ -592,15 +615,16 @@ resource "azurerm_data_factory_linked_service_sftp" "this" {
   parameters            = each.value.parameters
   additional_properties = each.value.additional_properties
 
-  authentication_type      = each.value.authentication_type
-  host                     = each.value.host
-  port                     = each.value.port
-  username                 = each.value.username
-  password                 = each.value.password
-  private_key_path         = each.value.private_key_path
-  private_key_passphrase   = each.value.private_key_passphrase
-  skip_host_key_validation = each.value.skip_host_key_validation
-  host_key_fingerprint     = each.value.host_key_fingerprint
+  authentication_type        = each.value.authentication_type
+  host                       = each.value.host
+  port                       = each.value.port
+  username                   = each.value.username
+  password                   = each.value.password
+  private_key_content_base64 = each.value.private_key_content_base64
+  private_key_path           = each.value.private_key_path
+  private_key_passphrase     = each.value.private_key_passphrase
+  skip_host_key_validation   = each.value.skip_host_key_validation
+  host_key_fingerprint       = each.value.host_key_fingerprint
 
   dynamic "key_vault_password" {
     for_each = lookup(each.value, "key_vault_password", null) != null ? [each.value.key_vault_password] : []
@@ -911,6 +935,7 @@ resource "azurerm_data_factory_dataset_azure_sql_table" "this" {
 
   linked_service_id = each.value.linked_service_id
   table             = each.value.table
+  schema            = each.value.schema
 
   dynamic "schema_column" {
     for_each = lookup(each.value, "schema_column", null) != null ? each.value.schema_column : []
@@ -2249,6 +2274,14 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
       subnet_name = vnet_integration.value.subnet_name
       public_ips  = vnet_integration.value.public_ips
       subnet_id   = vnet_integration.value.subnet_id
+    }
+  }
+
+  dynamic "express_vnet_integration" {
+    for_each = lookup(each.value, "express_vnet_integration", null) != null ? [each.value.express_vnet_integration] : []
+
+    content {
+      subnet_id = express_vnet_integration.value.subnet_id
     }
   }
 }
