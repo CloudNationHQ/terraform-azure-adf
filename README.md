@@ -166,21 +166,30 @@ object({
     }), {})
     linked_services = optional(object({
       azure_blob_storage = optional(map(object({
-        name                     = optional(string)
-        use_managed_identity     = optional(bool)
-        description              = optional(string)
-        integration_runtime_name = optional(string)
-        annotations              = optional(list(string))
-        parameters               = optional(map(string))
-        additional_properties    = optional(map(string))
-        connection_string        = optional(string)
-        sas_uri                  = optional(string)
-        service_endpoint         = optional(string)
-        service_principal_id     = optional(string)
-        service_principal_key    = optional(string)
-        storage_kind             = optional(string)
-        tenant_id                = optional(string)
+        name                       = optional(string)
+        use_managed_identity       = optional(bool)
+        description                = optional(string)
+        integration_runtime_name   = optional(string)
+        annotations                = optional(list(string))
+        parameters                 = optional(map(string))
+        additional_properties      = optional(map(string))
+        connection_string          = optional(string)
+        connection_string_insecure = optional(string)
+        sas_uri                    = optional(string)
+        service_endpoint           = optional(string)
+        service_principal_id       = optional(string)
+        service_principal_key      = optional(string)
+        storage_kind               = optional(string)
+        tenant_id                  = optional(string)
         sas_token_linked_key_vault_key = optional(object({
+          linked_service_name = string
+          secret_name         = string
+        }))
+        service_principal_linked_key_vault_key = optional(object({
+          linked_service_name = string
+          secret_name         = string
+        }))
+        key_vault_sas_token = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
@@ -396,21 +405,22 @@ object({
         additional_properties    = optional(map(string))
       })), {})
       sftp = optional(map(object({
-        name                     = optional(string)
-        authentication_type      = string
-        host                     = string
-        port                     = optional(number)
-        username                 = optional(string)
-        password                 = optional(string)
-        private_key_path         = optional(string)
-        private_key_passphrase   = optional(string)
-        skip_host_key_validation = optional(bool)
-        host_key_fingerprint     = optional(string)
-        description              = optional(string)
-        integration_runtime_name = optional(string)
-        annotations              = optional(list(string))
-        parameters               = optional(map(string))
-        additional_properties    = optional(map(string))
+        name                       = optional(string)
+        authentication_type        = string
+        host                       = string
+        port                       = optional(number)
+        username                   = optional(string)
+        password                   = optional(string)
+        private_key_content_base64 = optional(string)
+        private_key_path           = optional(string)
+        private_key_passphrase     = optional(string)
+        skip_host_key_validation   = optional(bool)
+        host_key_fingerprint       = optional(string)
+        description                = optional(string)
+        integration_runtime_name   = optional(string)
+        annotations                = optional(list(string))
+        parameters                 = optional(map(string))
+        additional_properties      = optional(map(string))
         key_vault_password = optional(object({
           linked_service_name = string
           secret_name         = string
@@ -537,6 +547,7 @@ object({
         name                  = optional(string)
         linked_service_id     = string
         table                 = optional(string)
+        schema                = optional(string)
         description           = optional(string)
         annotations           = optional(list(string))
         parameters            = optional(map(string))
@@ -983,6 +994,9 @@ object({
           subnet_name = string
           public_ips  = optional(list(string))
           subnet_id   = optional(string)
+        }))
+        express_vnet_integration = optional(object({
+          subnet_id = string
         }))
         catalog_info = optional(object({
           server_endpoint        = string
