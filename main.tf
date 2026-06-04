@@ -518,6 +518,7 @@ resource "azurerm_data_factory_linked_service_mysql" "this" {
   additional_properties = each.value.additional_properties
 
   connection_string = each.value.connection_string
+  driver_version    = each.value.driver_version
 }
 
 resource "azurerm_data_factory_linked_service_odata" "this" {
@@ -2124,6 +2125,8 @@ resource "azurerm_data_factory_integration_runtime_azure" "this" {
   cleanup_enabled         = each.value.cleanup_enabled
   virtual_network_enabled = each.value.virtual_network_enabled
   description             = each.value.description
+
+  interactive_authoring_time_to_live_in_minutes = each.value.interactive_authoring_time_to_live_in_minutes
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "this" {
