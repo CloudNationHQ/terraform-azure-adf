@@ -363,6 +363,7 @@ object({
       mysql = optional(map(object({
         name                     = optional(string)
         connection_string        = string
+        driver_version           = optional(string)
         description              = optional(string)
         integration_runtime_name = optional(string)
         annotations              = optional(list(string))
@@ -970,14 +971,15 @@ object({
     })), {})
     integration_runtimes = optional(object({
       azure = optional(map(object({
-        name                    = optional(string)
-        location                = string
-        compute_type            = optional(string)
-        core_count              = optional(number)
-        time_to_live_min        = optional(number)
-        cleanup_enabled         = optional(bool)
-        virtual_network_enabled = optional(bool)
-        description             = optional(string)
+        name                                          = optional(string)
+        location                                      = string
+        compute_type                                  = optional(string)
+        core_count                                    = optional(number)
+        time_to_live_min                              = optional(number)
+        interactive_authoring_time_to_live_in_minutes = optional(number)
+        cleanup_enabled                               = optional(bool)
+        virtual_network_enabled                       = optional(bool)
+        description                                   = optional(string)
       })), {})
       azure_ssis = optional(map(object({
         name                             = optional(string)
