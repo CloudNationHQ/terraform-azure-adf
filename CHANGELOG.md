@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/CloudNationHQ/terraform-azure-adf/compare/v1.1.0...v1.2.0) (2026-06-05)
+
+
+### Features
+
+* add driver_version and interactive_authoring_time_to_live_in_minutes ([#12](https://github.com/CloudNationHQ/terraform-azure-adf/issues/12)) ([969c427](https://github.com/CloudNationHQ/terraform-azure-adf/commit/969c42707a97e3a59bea5c692d5a75024387945c))
+
 ## [1.1.0](https://github.com/CloudNationHQ/terraform-azure-adf/compare/v1.0.0...v1.1.0) (2026-05-19)
 
 
