@@ -1,13 +1,13 @@
 module "naming" {
   source  = "cloudnationhq/naming/azure"
-  version = "~> 0.27"
+  version = "~> 0.32"
 
   suffix = ["demo", "dev"]
 }
 
 module "rg" {
   source  = "cloudnationhq/rg/azure"
-  version = "~> 2.0"
+  version = "~> 3.0"
 
   groups = {
     demo = {
@@ -19,7 +19,7 @@ module "rg" {
 
 module "storage" {
   source  = "cloudnationhq/sa/azure"
-  version = "~> 4.0"
+  version = "~> 5.0"
 
   storage = {
     name                = module.naming.storage_account.name_unique
@@ -30,7 +30,7 @@ module "storage" {
 
 module "adf" {
   source  = "cloudnationhq/adf/azure"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   instance = {
     name                = module.naming.data_factory.name_unique
@@ -107,12 +107,12 @@ module "adf" {
             name = "CopyData"
             type = "Copy"
             inputs = [{
-              referenceName = "dsab-blob_input"
+              referenceName = "blob_input"
               type          = "DatasetReference"
               parameters    = {}
             }]
             outputs = [{
-              referenceName = "dssql-sql_table"
+              referenceName = "sql_table"
               type          = "DatasetReference"
               parameters    = {}
             }]
