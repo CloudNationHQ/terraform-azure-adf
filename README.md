@@ -33,13 +33,13 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.0)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 4.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 5.0)
 
 ## Resources
 
@@ -118,11 +118,11 @@ object({
     customer_managed_key_id          = optional(string)
     customer_managed_key_identity_id = optional(string)
     tags                             = optional(map(string))
-    global_parameters = optional(list(object({
-      name  = string
+    global_parameters = optional(map(object({
+      name  = optional(string)
       type  = string
       value = any
-    })), [])
+    })), {})
     identity = optional(object({
       type         = optional(string, "SystemAssigned")
       identity_ids = optional(list(string))
@@ -186,10 +186,6 @@ object({
           secret_name         = string
         }))
         service_principal_linked_key_vault_key = optional(object({
-          linked_service_name = string
-          secret_name         = string
-        }))
-        key_vault_sas_token = optional(object({
           linked_service_name = string
           secret_name         = string
         }))
@@ -538,11 +534,11 @@ object({
         parameters               = optional(map(string))
         folder                   = optional(string)
         additional_properties    = optional(map(string))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       azure_sql_table = optional(map(object({
         name                  = optional(string)
@@ -554,11 +550,11 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       binary = optional(map(object({
         name                  = optional(string)
@@ -603,11 +599,11 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       delimited_text = optional(map(object({
         name                  = optional(string)
@@ -649,11 +645,11 @@ object({
           dynamic_path_enabled        = optional(bool)
           dynamic_filename_enabled    = optional(bool)
         }))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       http = optional(map(object({
         name                  = optional(string)
@@ -666,11 +662,11 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       json = optional(map(object({
         name                  = optional(string)
@@ -696,11 +692,11 @@ object({
           dynamic_path_enabled     = optional(bool)
           dynamic_filename_enabled = optional(bool)
         }))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       mysql = optional(map(object({
         name                  = optional(string)
@@ -711,11 +707,11 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       parquet = optional(map(object({
         name                  = optional(string)
@@ -750,11 +746,11 @@ object({
           dynamic_path_enabled     = optional(bool)
           dynamic_filename_enabled = optional(bool)
         }))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       postgresql = optional(map(object({
         name                  = optional(string)
@@ -765,11 +761,11 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       snowflake = optional(map(object({
         name                  = optional(string)
@@ -781,12 +777,12 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-        schema_column = optional(list(object({
-          name      = string
+        schema_column = optional(map(object({
+          name      = optional(string)
           type      = optional(string)
           precision = optional(number)
           scale     = optional(number)
-        })))
+        })), {})
       })), {})
       sql_server_table = optional(map(object({
         name                  = optional(string)
@@ -797,11 +793,11 @@ object({
         parameters            = optional(map(string))
         folder                = optional(string)
         additional_properties = optional(map(string))
-        schema_column = optional(list(object({
-          name        = string
+        schema_column = optional(map(object({
+          name        = optional(string)
           type        = optional(string)
           description = optional(string)
-        })))
+        })), {})
       })), {})
       custom = optional(map(object({
         name                  = optional(string)
@@ -826,8 +822,8 @@ object({
       annotations  = optional(list(string))
       script       = optional(string)
       script_lines = optional(list(string))
-      source = optional(list(object({
-        name        = string
+      source = optional(map(object({
+        name        = optional(string)
         description = optional(string)
         linked_service = optional(object({
           name       = string
@@ -850,9 +846,9 @@ object({
           name       = string
           parameters = optional(map(string))
         }))
-      })))
-      sink = optional(list(object({
-        name        = string
+      })), {})
+      sink = optional(map(object({
+        name        = optional(string)
         description = optional(string)
         linked_service = optional(object({
           name       = string
@@ -875,9 +871,9 @@ object({
           name       = string
           parameters = optional(map(string))
         }))
-      })))
-      transformation = optional(list(object({
-        name        = string
+      })), {})
+      transformation = optional(map(object({
+        name        = optional(string)
         description = optional(string)
         linked_service = optional(object({
           name       = string
@@ -892,7 +888,7 @@ object({
           parameters         = optional(map(string))
           dataset_parameters = optional(string)
         }))
-      })))
+      })), {})
     })), {})
     flowlet_data_flows = optional(map(object({
       name         = optional(string)
@@ -901,8 +897,8 @@ object({
       annotations  = optional(list(string))
       script       = optional(string)
       script_lines = optional(list(string))
-      source = optional(list(object({
-        name        = string
+      source = optional(map(object({
+        name        = optional(string)
         description = optional(string)
         linked_service = optional(object({
           name       = string
@@ -925,9 +921,9 @@ object({
           name       = string
           parameters = optional(map(string))
         }))
-      })))
-      sink = optional(list(object({
-        name        = string
+      })), {})
+      sink = optional(map(object({
+        name        = optional(string)
         description = optional(string)
         linked_service = optional(object({
           name       = string
@@ -950,9 +946,9 @@ object({
           name       = string
           parameters = optional(map(string))
         }))
-      })))
-      transformation = optional(list(object({
-        name        = string
+      })), {})
+      transformation = optional(map(object({
+        name        = optional(string)
         description = optional(string)
         linked_service = optional(object({
           name       = string
@@ -967,7 +963,7 @@ object({
           parameters         = optional(map(string))
           dataset_parameters = optional(string)
         }))
-      })))
+      })), {})
     })), {})
     integration_runtimes = optional(object({
       azure = optional(map(object({
@@ -1030,8 +1026,8 @@ object({
               parameters          = optional(map(string))
             }))
           }))
-          component = optional(list(object({
-            name    = string
+          component = optional(map(object({
+            name    = optional(string)
             license = optional(string)
             key_vault_license = optional(object({
               linked_service_name = string
@@ -1039,7 +1035,7 @@ object({
               secret_version      = optional(string)
               parameters          = optional(map(string))
             }))
-          })))
+          })), {})
         }))
         package_store = optional(object({
           name                = string
@@ -1071,7 +1067,7 @@ object({
       description                    = optional(string)
       annotations                    = optional(list(string))
       concurrency                    = optional(number)
-      moniter_metrics_after_duration = optional(string)
+      monitor_metrics_after_duration = optional(string)
       parameters                     = optional(map(string))
       variables                      = optional(map(string))
       folder                         = optional(string)
@@ -1088,10 +1084,10 @@ object({
         annotations           = optional(list(string))
         activated             = optional(bool)
         additional_properties = optional(map(string))
-        pipelines = optional(list(object({
-          name       = string
+        pipelines = optional(map(object({
+          name       = optional(string)
           parameters = optional(map(string))
-        })))
+        })), {})
       })), {})
       schedule = optional(map(object({
         name                = optional(string)
@@ -1105,10 +1101,10 @@ object({
         activated           = optional(bool)
         pipeline_name       = optional(string)
         pipeline_parameters = optional(map(string))
-        pipelines = optional(list(object({
-          name       = string
+        pipelines = optional(map(object({
+          name       = optional(string)
           parameters = optional(map(string))
-        })))
+        })), {})
         schedule = optional(object({
           minutes       = optional(list(number))
           hours         = optional(list(number))
@@ -1132,19 +1128,19 @@ object({
         annotations           = optional(list(string))
         activated             = optional(bool)
         additional_properties = optional(map(string))
-        pipelines = optional(list(object({
-          name       = string
+        pipelines = optional(map(object({
+          name       = optional(string)
           parameters = optional(map(string))
-        })))
+        })), {})
         retry = optional(object({
           count    = optional(number)
           interval = optional(number)
         }))
-        trigger_dependencies = optional(list(object({
+        trigger_dependencies = optional(map(object({
           offset       = optional(string)
           size         = optional(string)
           trigger_name = optional(string)
-        })))
+        })), {})
       })), {})
       custom_event = optional(map(object({
         name                  = optional(string)
@@ -1156,10 +1152,10 @@ object({
         annotations           = optional(list(string))
         activated             = optional(bool)
         additional_properties = optional(map(string))
-        pipelines = optional(list(object({
-          name       = string
+        pipelines = optional(map(object({
+          name       = optional(string)
           parameters = optional(map(string))
-        })))
+        })), {})
       })), {})
     }), {})
     managed_private_endpoints = optional(map(object({
@@ -1268,11 +1264,7 @@ To update the module's documentation run `make doc`
 
 We welcome contributions from the community! Whether it's reporting a bug, suggesting a new feature, or submitting a pull request, your input is highly valued.
 
-For more information, please see our contribution [guidelines](./CONTRIBUTING.md). <br><br>
-
-<a href="https://github.com/cloudnationhq/terraform-azure-adf/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=cloudnationhq/terraform-azure-adf" />
-</a>
+For more information, please see our contribution [guidelines](./CONTRIBUTING.md).
 
 ## License
 
@@ -1282,4 +1274,3 @@ MIT Licensed. See [LICENSE](./LICENSE) for full details.
 
 - [Documentation](https://learn.microsoft.com/en-us/azure/data-factory/)
 - [Rest Api](https://learn.microsoft.com/en-us/rest/api/datafactory/)
-- [Rest Api Specs](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/datafactory)
