@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.0](https://github.com/CloudNationHQ/terraform-azure-adf/compare/v1.2.0...v2.0.0) (2026-09-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* this change causes recreates
+
+### Features
+
+* azurerm provider 5 upgrade ([#16](https://github.com/CloudNationHQ/terraform-azure-adf/issues/16)) ([0e27da5](https://github.com/CloudNationHQ/terraform-azure-adf/commit/0e27da532dceaf99fec999a078f0350bd009c188))
+* **deps:** Bump golang.org/x/crypto from 0.45.0 to 0.52.0 in /tests ([#14](https://github.com/CloudNationHQ/terraform-azure-adf/issues/14)) ([cd25ffd](https://github.com/CloudNationHQ/terraform-azure-adf/commit/cd25ffdbfc7e3753d2662de77705043d03b5d8b1))
+
 ## [1.2.0](https://github.com/CloudNationHQ/terraform-azure-adf/compare/v1.1.0...v1.2.0) (2026-06-05)
 
 
